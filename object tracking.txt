@@ -1,0 +1,2 @@
+For object tracking we have openCV -> a tool which has implemented more algorithms. 
+	https://www.learnopencv.com/object-tracking-using-opencv-cpp-python/
