@@ -1,0 +1,2 @@
+yolo explained: https://towardsdatascience.com/evolution-of-object-detection-and-localization-algorithms-e241021d8bad
+state of the art: https://www.quora.com/What-is-the-state-of-the-art-object-detection-algorithm-in-2018

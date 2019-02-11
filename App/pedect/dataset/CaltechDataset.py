@@ -1,7 +1,7 @@
 from pedect.dataset.Dataset import Dataset
-
+import os
 class CaltechDataset(Dataset):
-    def __init__(self, baseDir="..\\Data\\caltech"):
+    def __init__(self, baseDir=os.path.join("..", "..", "Data", "caltech")):
         super().__init__(baseDir)
 
     def getVideoPath(self, videoSet, videoNr):
