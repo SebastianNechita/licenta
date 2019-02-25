@@ -1,9 +1,12 @@
+import os
+
+
 class Dataset:
     def __init__(self, baseDir):
         self.baseDir = baseDir
 
     def getVideoPath(self, videoSet, videoNr):
-        raise Exception("Not implemented!")
+        return os.path.join(self.baseDir, videoSet, videoNr + ".seq")
 
     def getAnnotationsPath(self, videoSet, videoNr):
-        raise Exception("Not implemented!")
+        return os.path.join(self.baseDir, "annotations", videoSet, videoNr + ".vbb")

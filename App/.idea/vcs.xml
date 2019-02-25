@@ -3,5 +3,7 @@
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$/.." vcs="Git" />
     <mapping directory="$PROJECT_DIR$/keras-retinanet" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/mAP" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/re3-tensorflow" vcs="Git" />
   </component>
 </project>
