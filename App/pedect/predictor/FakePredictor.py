@@ -1,12 +1,20 @@
 import random
+
 from pedect.predictor.BasePredictor import BasePredictor
 
+
 class FakePredictor(BasePredictor):
-    fakeProbRange = (0.0, 0.8)
-    realProbRange = (0.3, 1.0)
+    # fakeProbRange = (0.0, 0.8)
+    # realProbRange = (0.3, 1.0)
+
+    def __init__(self, fakeProbRange, realProbRange, predictor, videoHolder):
+        self.fakeProbRange = fakeProbRange
+        self.realProbRange = realProbRange
+        self.predictor = predictor
+        self.videoHolder = videoHolder
 
     def getPredictedBoxesForFrame(self, frameNr):
-        boxes = self.getGroundTruthForFrame(frameNr)
+        boxes = self.predictor.predictForFrame(frameNr)
         for box in boxes:
             box.setProb(random.random() * (self.realProbRange[1] - self.realProbRange[0]) + self.realProbRange[0])
         return boxes
@@ -20,7 +28,7 @@ class FakePredictor(BasePredictor):
         return number
 
     def getFakePredictionsForFrame(self, frameNr):
-        imageShape = self.video[0].shape
+        imageShape = self.videoHolder.getFrame(0).shape
         predictedBBoxes = []
         correctPredictions = self.getPredictedBoxesForFrame(frameNr) + self.getPredictedBoxesForFrame(frameNr)
         for pred in correctPredictions:

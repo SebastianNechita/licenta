@@ -1,0 +1,20 @@
+# AP and precision/recall per class
+20.00% = people AP 
+ Precision: ['0.00', '0.50', '0.33', '0.50', '0.40', '0.33', '0.43', '0.50']
+ Recall :['0.00', '0.10', '0.10', '0.20', '0.20', '0.20', '0.30', '0.40']
+
+71.71% = person AP 
+ Precision: ['1.00', '1.00', '1.00', '0.75', '0.80', '0.83', '0.86', '0.75', '0.78', '0.80']
+ Recall :['0.10', '0.20', '0.30', '0.30', '0.40', '0.50', '0.60', '0.60', '0.70', '0.80']
+
+
+# mAP of all classes
+mAP = 45.86%
+
+# Number of ground-truth objects per class
+people: 10
+person: 10
+
+# Number of predicted objects per class
+people: 8 (tp:4, fp:4)
+person: 10 (tp:8, fp:2)
