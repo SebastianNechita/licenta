@@ -1,3 +1,6 @@
+import os
+
+
 class BasicConfig:
     possibleLabels = {'people': (255, 0, 0), 'person-fa': (0, 0, 255), 'person': (0, 255, 0)}
     batchSize = 1
@@ -10,6 +13,7 @@ class BasicConfig:
     surviveThreshold = 0.2
     surviveMovePercent = 0.0
     maxAge = 100
+    modelPath = os.path.join("keras-yolo3", "model_data", "trained_weights_final.h5")
 
     def configName(self):
         return "BasicConfig"

@@ -44,6 +44,7 @@ class ConverterToImagesRetinaNet:
         v = read_seq(video_path)
         annotations = read_vbb(annotations_path)
         for i in tqdm(range(len(v))):
+            print(v[i])
             img = Image.fromarray(v[i])
             anns = getAnnotationsForFrame(i, annotations)
             imageName = self.textPattern % (datasetName, setName, videoNr, i)

@@ -47,3 +47,6 @@ class PredictedBox:
     def setProb(self, prob):
         self.__prob = prob
 
+    def __str__(self):
+        return "(%d, %d, %d, %d) %f %s" % (self.getX1(), self.getY1(), self.getX2(), self.getY2(), self.getProb(), self.getLabel())
+

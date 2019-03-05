@@ -1,12 +1,13 @@
 from scipy.io import loadmat
 from collections import defaultdict
 import pims
+import struct
 from matplotlib import animation
 from tqdm import tqdm_notebook
 import cv2 as cv
 from copy import deepcopy
 import matplotlib.pyplot as plt
-
+from scipy.ndimage import imread
 def addAnnotationsToImage(img, ann, config):
     img2 = deepcopy(img)
     for personAnn in ann:
@@ -57,7 +58,50 @@ def getAllLabels(annotations):
     return allLabels
 
 def read_seq(path):
-    return pims.PyAVReaderIndexed(path)
+    def read_header(ifile):
+        feed = ifile.read(4)
+        norpix = ifile.read(24)
+        version = struct.unpack('@i', ifile.read(4))
+        length = struct.unpack('@i', ifile.read(4))
+        assert (length != 1024)
+        descr = ifile.read(512)
+        params = [struct.unpack('@i', ifile.read(4))[0] for i in range(9)]
+        fps = struct.unpack('@d', ifile.read(8))
+        ifile.read(432)
+        image_ext = {100: 'raw', 102: 'jpg', 201: 'jpg', 1: 'png', 2: 'png'}
+        return {'w': params[0], 'h': params[1], 'bdepth': params[2],
+                'ext': image_ext[params[5]], 'format': params[5],
+                'size': params[4], 'true_size': params[8],
+                'num_frames': params[6]}
+
+    assert path[-3:] == 'seq', path
+    ifile = open(path, 'rb')
+    params = read_header(ifile)
+    bytes = open(path, 'rb').read()
+
+    imgs = []
+    extra = 8
+    s = 1024
+    for i in range(params['num_frames']):
+        tmp = struct.unpack_from('@I', bytes[s:s + 4])[0]
+        I = bytes[s + 4:s + tmp]
+        s += tmp + extra
+        if i == 0:
+            val = struct.unpack_from('@B', bytes[s:s + 1])[0]
+            if val != 0:
+                s -= 4
+            else:
+                extra += 8
+                s += 8
+        imgs.append(I)
+    video = []
+    for img in imgs:
+        with open("temporary.jpg", "wb+") as f:
+            f.write(img)
+        video.append(imread("temporary.jpg"))
+
+    return video
+    # return pims.PyAVReaderIndexed(path)
 
 # Copied from https://github.com/hizhangp/caltech-pedestrian-converter/blob/master/converter.py
 def read_vbb(path):
