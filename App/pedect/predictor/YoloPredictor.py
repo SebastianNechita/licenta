@@ -12,9 +12,44 @@ from pedect.predictor.PredictedBox import PredictedBox
 class YoloPredictor(BasePredictor):
     def __init__(self, videoHolder, config):
         self.videoHolder = videoHolder
-        self.yoloObject = YOLO(model_path = config.modelPath, classes_path = LABELS_FILE, anchors_path = config.anchorsPath)
+        self.config = config
+        self.yoloObject = YOLO(model_path = config.getModelPath(),
+                               classes_path = LABELS_FILE,
+                               anchors_path = config.getAnchorsPath())
+
+    def getPredictionPathForFrame(self, frameNr):
+        return os.path.join(self.config.getPredictionsPath(),
+                            self.videoHolder.chosenDataset.datasetName,
+                            self.videoHolder.setName,
+                            self.videoHolder.videoNr,
+                            frameNr + ".prediction")
+
+    def readPredictionBoxes(self, predictionPath):
+        f = open(predictionPath, "r")
+        boxes = []
+        for line in f.readlines():
+            v = line.split(",")
+            if len(v) < 6:
+                continue
+            boxes.append(PredictedBox(int(v[0]), int(v[1]), int(v[2]), int(v[3]), float(v[4]), v[5]))
+        f.close()
+        return boxes
+
+    def writePredictionBoxes(self, predictionPath, objects):
+        f = open(predictionPath, "w")
+        for object in objects:
+            f.write("%d %d %d %d %f %s\n" % (object.getX1(),
+                                             object.getY1(),
+                                             object.getX2(),
+                                             object.getY2(),
+                                             object.getProb(),
+                                             object.getLabel()))
+        f.close()
 
     def predictForFrame(self, frameNr):
+        predictionPath = self.getPredictionPathForFrame(frameNr)
+        if os.path.isfile(predictionPath):
+            return self.readPredictionBoxes(predictionPath)
         image = Image.fromarray(self.videoHolder.getFrame(frameNr), 'RGB')
         if self.yoloObject.model_image_size != (None, None):
             assert self.yoloObject.model_image_size[0]%32 == 0, 'Multiples of 32 required'
@@ -49,4 +84,6 @@ class YoloPredictor(BasePredictor):
             bottom = min(image.size[1], np.floor(bottom + 0.5).astype('int32'))
             right = min(image.size[0], np.floor(right + 0.5).astype('int32'))
             objects.append(PredictedBox(top, left, bottom, right, predicted_class, score))
+
+        self.writePredictionBoxes(predictionPath, objects)
         return objects

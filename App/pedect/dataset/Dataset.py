@@ -2,6 +2,7 @@ import os
 
 
 class Dataset:
+    datasetName = "Dataset"
     def __init__(self, baseDir):
         self.baseDir = baseDir
 
@@ -10,3 +11,5 @@ class Dataset:
 
     def getAnnotationsPath(self, videoSet, videoNr):
         return os.path.join(self.baseDir, "annotations", videoSet, videoNr + ".vbb")
+
+
