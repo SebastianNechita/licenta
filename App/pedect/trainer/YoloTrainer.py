@@ -28,6 +28,8 @@ class YoloTrainer(Trainer):
 
         annotation_path = ANNOTATIONS_FILE
         models_dir = os.path.join(MODELS_DIR, config.trainId)
+        if not os.path.exists(models_dir):
+            os.makedirs(models_dir)
         config.save(os.path.join(models_dir, "config.pickle"))
         config.saveText(os.path.join(models_dir, "config.txt"))
         classes_path = LABELS_FILE
@@ -49,7 +51,7 @@ class YoloTrainer(Trainer):
                                  freeze_body=2, weights_path=os.path.join(YOLO_DIR, 'model_data',
                                                                           'yolo_weights.h5'))  # make sure you know what you freeze
 
-        logging = TensorBoard(log_dir=models_dir)
+        # logging = TensorBoard(log_dir=models_dir)
         checkpoint = ModelCheckpoint(os.path.join(models_dir, 'ep{epoch:03d}-loss{loss:.3f}-val_loss{val_loss:.3f}.h5'),
                                      monitor='val_loss', save_weights_only=True, save_best_only=True,
                                      period=config.checkpointPeriod)
@@ -82,7 +84,7 @@ class YoloTrainer(Trainer):
                 validation_steps=max(1, num_val // batch_size),
                 epochs=freezeNoEpochs,
                 initial_epoch=0,
-                callbacks=[logging, checkpoint])
+                callbacks=[checkpoint])
         #         model.save_weights(log_dir + 'trained_weights_stage_1.h5')
 
         # Unfreeze and continue training, to fine-tune.
@@ -105,7 +107,7 @@ class YoloTrainer(Trainer):
                 validation_steps=max(1, num_val // batch_size),
                 epochs=freezeNoEpochs + noFreezeNoEpochs,
                 initial_epoch=freezeNoEpochs,
-                callbacks=[logging, checkpoint, reduce_lr, early_stopping])
+                callbacks=[checkpoint, reduce_lr, early_stopping])
         model.save_weights(config.getModelPath())
         # Further training if needed.
         print("Finished training!")
@@ -208,9 +210,3 @@ def data_generator_wrapper(annotation_lines, batch_size, input_shape, anchors, n
     n = len(annotation_lines)
     if n == 0 or batch_size <= 0: return None
     return data_generator(annotation_lines, batch_size, input_shape, anchors, num_classes)
-
-from pedect.config.BasicConfig import *
-
-if __name__ == '__main__':
-    config = getConfigFromTrainId(1)
-    YoloTrainer(config).train()

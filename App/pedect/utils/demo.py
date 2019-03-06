@@ -14,12 +14,12 @@ def addRectanglesToImage(tracker, image, activeObjects, predictedBBoxes, createT
         cv2.rectangle(image, (int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[3])), [0, 0, 255], 2)
 
 
-def playVideo(predictor, tracker, config):
+def playVideo(predictor, videoHolder, tracker, config):
     cv2.namedWindow('Video', cv2.WINDOW_NORMAL)
     cv2.resizeWindow('Video', 640, 480)
     activeObjects = {}
-    video = predictor.getVideo()
-    for frameNr in range(predictor.getLength()):
+    video = videoHolder.getVideo()
+    for frameNr in range(videoHolder.getLength()):
         image = video[frameNr]  # predictor.getFrame(frameNr)
         activeObjects = refreshTrackedObjects(tracker, image, activeObjects)
         predictedBBoxes = predictor.predictForFrame(frameNr)

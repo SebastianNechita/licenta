@@ -22,7 +22,8 @@ class TrackerPredictor(BasePredictor):
                                                             self.config.createThreshold, self.config.removeThreshold,
                                                             frameNr)
         self.activeObjects = removeOldObjects(self.activeObjects, frameNr, self.config.maxAge)
-        return [PredictedBox(v.getPos()[0], v.getPos()[1], v.getPos()[2], v.getPos()[3], v.getLabel(), 1.0)
+        return [PredictedBox(int(v.getPos()[0] + 0.5), int(v.getPos()[1] + 0.5), int(v.getPos()[2] + 0.5),
+                             int(v.getPos()[3] + 0.5), v.getLabel(), 1.0)
                 for k, v in self.activeObjects.items()]
 
 

@@ -1,18 +1,17 @@
-import copy
-import os
 import pickle
 
-from pedect.utils.constants import MODELS_DIR, YOLO_DIR
+from pedect.utils.constants import *
 
 
 class BasicConfig:
     def save(self, configFile):
-        f = open(configFile, 'wb')
+        self.updateDictionary()
+        f = open(configFile, 'wb+')
         pickle.dump(self, f)
         f.close()
 
     def saveText(self, configFile):
-        f = open(configFile, 'w')
+        f = open(configFile, 'w+')
         f.write(str(self))
         f.close()
 
@@ -27,25 +26,29 @@ class BasicConfig:
                 dict[k] = v
         return dict
 
+    def updateDictionary(self):
+        for k, v in self.getDictionary().items():
+            self.__dict__[k] = v
+
     possibleLabels = {'people': (255, 0, 0), 'person-fa': (0, 0, 255), 'person': (0, 255, 0)}
     # For training
-    trainId = "1"
+    trainId = "2"
     modelName = "trained_weights_final.h5"
     inputShape = (416, 416)  # multiple of 32, hw
-    freezeNoEpochs = 1
-    noFreezeNoEpochs = 0
-    isTiny = True
-    validationSplit = 0.3
-    freezeBatchSize = 5
-    noFreezeBatchSize = 1
+    freezeNoEpochs = 10
+    noFreezeNoEpochs = 10
+    isTiny = False
+    validationSplit = 0.1
+    freezeBatchSize = 16
+    noFreezeBatchSize = 16
     loadPretrained = True
+    checkpointPeriod = 150
     # For tracking
     createThreshold = 0.9
     removeThreshold = 0.5
     surviveThreshold = 0.2
     surviveMovePercent = 0.0
     maxAge = 100
-    checkpointPeriod = 1
 
     def getModelPath(self):
         return os.path.join(MODELS_DIR, str(self.trainId), self.modelName)

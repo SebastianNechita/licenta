@@ -24,7 +24,7 @@ from constants import LOG_DIR
 from constants import GPU_ID
 from constants import MAX_TRACK_LENGTH
 
-SPEED_OUTPUT = True
+SPEED_OUTPUT = False
 
 class Re3Tracker(object):
     def __init__(self, gpu_id=GPU_ID):

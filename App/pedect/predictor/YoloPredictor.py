@@ -8,6 +8,8 @@ from pedect.predictor.BasePredictor import BasePredictor
 from pedect.utils.constants import *
 
 from pedect.predictor.PredictedBox import PredictedBox
+from pedect.utils.osUtils import *
+
 
 class YoloPredictor(BasePredictor):
     def __init__(self, videoHolder, config):
@@ -16,27 +18,26 @@ class YoloPredictor(BasePredictor):
         self.yoloObject = YOLO(model_path = config.getModelPath(),
                                classes_path = LABELS_FILE,
                                anchors_path = config.getAnchorsPath())
+        self.savePath = [self.config.getPredictionsPath(), self.videoHolder.chosenDataset.datasetName,
+                         self.videoHolder.setName, self.videoHolder.videoNr]
 
     def getPredictionPathForFrame(self, frameNr):
-        return os.path.join(self.config.getPredictionsPath(),
-                            self.videoHolder.chosenDataset.datasetName,
-                            self.videoHolder.setName,
-                            self.videoHolder.videoNr,
-                            frameNr + ".prediction")
+        return os.path.join(getPathFromList(self.savePath), str(frameNr) + ".prediction")
 
     def readPredictionBoxes(self, predictionPath):
         f = open(predictionPath, "r")
         boxes = []
         for line in f.readlines():
-            v = line.split(",")
+            v = line.split("\n")[0].split(" ")
             if len(v) < 6:
                 continue
-            boxes.append(PredictedBox(int(v[0]), int(v[1]), int(v[2]), int(v[3]), float(v[4]), v[5]))
+            boxes.append(PredictedBox(int(v[0]), int(v[1]), int(v[2]), int(v[3]), v[5], float(v[4])))
         f.close()
         return boxes
 
     def writePredictionBoxes(self, predictionPath, objects):
-        f = open(predictionPath, "w")
+        createDirectoryIfNotExists(self.savePath)
+        f = open(predictionPath, "w+")
         for object in objects:
             f.write("%d %d %d %d %f %s\n" % (object.getX1(),
                                              object.getY1(),
@@ -60,8 +61,6 @@ class YoloPredictor(BasePredictor):
                               image.height - (image.height % 32))
             boxed_image = letterbox_image(image, new_image_size)
         image_data = np.array(boxed_image, dtype='float32')
-
-        print(image_data.shape)
         image_data /= 255.
         image_data = np.expand_dims(image_data, 0)  # Add batch dimension.
 
@@ -79,11 +78,11 @@ class YoloPredictor(BasePredictor):
             box = out_boxes[i]
             score = out_scores[i]
             top, left, bottom, right = box
-            top = max(0, np.floor(top + 0.5).astype('int32'))
-            left = max(0, np.floor(left + 0.5).astype('int32'))
-            bottom = min(image.size[1], np.floor(bottom + 0.5).astype('int32'))
-            right = min(image.size[0], np.floor(right + 0.5).astype('int32'))
-            objects.append(PredictedBox(top, left, bottom, right, predicted_class, score))
+            top = max(0, np.floor(top + 0.5).astype('int'))
+            left = max(0, np.floor(left + 0.5).astype('int'))
+            bottom = min(image.size[1], np.floor(bottom + 0.5).astype('int'))
+            right = min(image.size[0], np.floor(right + 0.5).astype('int'))
+            objects.append(PredictedBox(int(left), int(top), int(right), int(bottom), predicted_class, float(score)))
 
         self.writePredictionBoxes(predictionPath, objects)
         return objects

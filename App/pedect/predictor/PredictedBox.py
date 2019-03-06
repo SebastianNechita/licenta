@@ -1,9 +1,16 @@
+
 class PredictedBox:
     __x1, __y1, __x2, __y2 = 0, 0, 0, 0
     __label = ""
     __prob = 0.0
 
     def __init__(self, x1, y1, x2, y2, label, prob):
+        assert isinstance(x1, int)
+        assert isinstance(y1, int)
+        assert isinstance(x2, int)
+        assert isinstance(y2, int)
+        assert isinstance(label, str)
+        assert isinstance(prob, float)
         self.__x1, self.__y1, self.__x2, self.__y2 = x1, y1, x2, y2
         self.__label = label
         self.__prob = prob
@@ -48,5 +55,4 @@ class PredictedBox:
         self.__prob = prob
 
     def __str__(self):
-        return "(%d, %d, %d, %d) %f %s" % (self.getX1(), self.getY1(), self.getX2(), self.getY2(), self.getProb(), self.getLabel())
-
+        return str((self.getX1(), self.getY1(), self.getX2(), self.getY2(), self.getProb(), self.getLabel()))

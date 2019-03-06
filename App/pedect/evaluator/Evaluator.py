@@ -2,10 +2,13 @@ import os
 import random
 
 from pedect.utils.osUtils import emptyDirectory
+from tqdm import tqdm
 
 
 class Evaluator:
-    def __init__(self, config, predictor, groundTruthPredictor, maxFrames):
+    def __init__(self, config, predictor, groundTruthPredictor, maxFrames = -1):
+        if maxFrames == -1:
+            maxFrames = groundTruthPredictor.getLength()
         self.predictor = predictor
         self.predictor.config = config
         self.groundTruthPredictor = groundTruthPredictor
@@ -13,7 +16,7 @@ class Evaluator:
         self.computed = False
         self.result = 0
 
-    def evaluate(self):
+    def evaluate(self, verbose = False):
         if self.computed:
             return self.result
         s = random.getstate()
@@ -23,7 +26,10 @@ class Evaluator:
         predictedPath = os.path.join(basePath, 'predicted')
         emptyDirectory(predictedPath)
         emptyDirectory(gtPath)
-        for frameNr in range(min(self.groundTruthPredictor.getLength(), self.maxFrames)):
+        rangeToIterate = range(min(self.groundTruthPredictor.getLength(), self.maxFrames))
+        if verbose:
+            rangeToIterate = tqdm(rangeToIterate)
+        for frameNr in rangeToIterate:
             groundTruthObjects = self.groundTruthPredictor.predictForFrame(frameNr)
             predictedObjects = self.predictor.predictForFrame(frameNr)
             f = open(os.path.join(gtPath, str(frameNr) + ".txt"), "a+")

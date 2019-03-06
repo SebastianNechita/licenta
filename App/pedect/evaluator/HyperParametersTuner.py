@@ -3,7 +3,7 @@ import random
 from tqdm import tqdm
 
 from pedect.config.BasicConfig import BasicConfig
-from pedect.utils.evaluator.Evaluator import Evaluator
+from pedect.evaluator.Evaluator import Evaluator
 
 
 class HyperParametersTuner:

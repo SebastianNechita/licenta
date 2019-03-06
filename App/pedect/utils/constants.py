@@ -8,4 +8,5 @@ CALTECH_DIR = os.path.join(DATA_DIR, "caltech")
 INRIA_DIR = os.path.join(DATA_DIR, "inria")
 DAIMLER_DIR = os.path.join(DATA_DIR, "daimler")
 MODELS_DIR = os.path.join(".", "models")
+PREDICTIONS_PATH = os.path.join(".", "predictions")
 YOLO_DIR = 'keras-yolo3'
