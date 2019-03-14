@@ -1,8 +1,13 @@
+from pedect.dataset.CaltechDataset import CaltechDataset
 from pedect.input.inputProcessing import read_seq
+from pedect.utils.constants import CALTECH_DIR
+
 
 class VideoHolder:
 
     def __init__(self, chosenDataset, setName, videoNr):
+        if isinstance(chosenDataset, str):
+            chosenDataset = findDatasetByName(chosenDataset)
         self.chosenDataset = chosenDataset
         self.setName = setName
         self.videoNr = videoNr
@@ -17,3 +22,11 @@ class VideoHolder:
 
     def getFrame(self, frameNr):
         return self.video[frameNr]
+
+
+def findDatasetByName(datasetName):
+    if datasetName == 'caltech':
+        dataset = CaltechDataset(CALTECH_DIR)
+    else:
+        raise Exception("Error no such dataset defined in this function!")
+    return dataset

@@ -48,6 +48,7 @@ class BasicConfig:
     removeThreshold = 0.5
     surviveThreshold = 0.2
     surviveMovePercent = 0.0
+    minScorePrediction = 0.5
     maxAge = 100
 
     def getModelPath(self):
@@ -63,6 +64,15 @@ class BasicConfig:
 
     def configName(self):
         return "BasicConfig"
+
+    def getTrackingHyperParameters(self):
+        return {
+            "createThreshold": self.createThreshold,
+            "removeThreshold": self.removeThreshold,
+            "surviveThreshold": self.surviveThreshold,
+            "surviveMovePercent": self.surviveMovePercent,
+            "minScorePrediction": self.minScorePrediction
+        }
 
     def __str__(self):
         res = ""

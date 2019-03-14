@@ -13,18 +13,20 @@ from pedect.utils.constants import *
 
 
 class YoloTrainer(Trainer):
-    def __init__(self, config):
+    def __init__(self, config, annotationFiles = [ANNOTATIONS_FILE]):
         self.config = config
+        self.annotationFiles = annotationFiles
+
+    def createAnnotationFile(self):
+        path = os.path.join(BASE_DIR)
 
     def train(self):
-        """
-        Retrain the YOLO model for your own dataset.
-        """
         config = self.config
         freezeNoEpochs = config.freezeNoEpochs if config.loadPretrained else 0
         noFreezeNoEpochs = config.noFreezeNoEpochs
         is_tiny_version = config.isTiny  # default setting
 
+        annotation_path = self.createAnnotationFile()
 
         annotation_path = ANNOTATIONS_FILE
         models_dir = os.path.join(MODELS_DIR, config.trainId)

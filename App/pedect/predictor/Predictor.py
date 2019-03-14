@@ -1,6 +1,6 @@
 from abc import abstractmethod
 
-class BasePredictor:
+class Predictor:
 
     @abstractmethod
     def predictForFrame(self, frameNr):

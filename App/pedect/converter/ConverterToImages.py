@@ -110,7 +110,7 @@ class ConverterToImagesYoloV3:
                 print(e)
         self.csvSet = set()
 
-    def saveImages(self, datasetName, setName, videoNr):
+    def saveImagesFromGroundTruth(self, datasetName, setName, videoNr):
         print("Saving images from %s set %s video %s" % (datasetName, setName, videoNr))
         if datasetName == 'caltech':
             chosenDataset = CaltechDataset(CALTECH_DIR)
@@ -147,6 +147,7 @@ class ConverterToImagesYoloV3:
 
             self.csvSet.add(string)
 
+
     def writeAnnotationsFile(self):
         try:
             os.remove(ANNOTATIONS_FILE)
@@ -180,5 +181,5 @@ def convertVideosToImages(videoList, datasetOption):
     converter = datasetOption(textPattern)
     converter.clearDirectory()
     for video in videoList:
-        converter.saveImages(video[0], video[1], video[2])
+        converter.saveImagesFromGroundTruth(video[0], video[1], video[2])
     converter.writeAnnotationsFile()

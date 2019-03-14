@@ -4,20 +4,29 @@ from yolo import YOLO
 from yolo3.utils import letterbox_image
 from keras import backend as K
 
-from pedect.predictor.BasePredictor import BasePredictor
+from pedect.predictor.Predictor import Predictor
 from pedect.utils.constants import *
 
 from pedect.predictor.PredictedBox import PredictedBox
 from pedect.utils.osUtils import *
 
+class YOLOManager:
+    existentYoloObjects = {}
+    @staticmethod
+    def getYoloObject(config):
+        uniqueValue = (config.getModelPath(), config.getAnchorsPath())
+        if uniqueValue not in YOLOManager.existentYoloObjects:
+            YOLOManager.existentYoloObjects[uniqueValue] = YOLO(model_path = config.getModelPath(),
+                                                                classes_path = LABELS_FILE,
+                                                                anchors_path = config.getAnchorsPath(),
+                                                                score = 0.05)
+        return YOLOManager.existentYoloObjects[uniqueValue]
 
-class YoloPredictor(BasePredictor):
+class YoloPredictor(Predictor):
     def __init__(self, videoHolder, config):
         self.videoHolder = videoHolder
         self.config = config
-        self.yoloObject = YOLO(model_path = config.getModelPath(),
-                               classes_path = LABELS_FILE,
-                               anchors_path = config.getAnchorsPath())
+        self.yoloObject = YOLOManager.getYoloObject(config)
         self.savePath = [self.config.getPredictionsPath(), self.videoHolder.chosenDataset.datasetName,
                          self.videoHolder.setName, self.videoHolder.videoNr]
 

@@ -1,9 +1,9 @@
 import random
 
-from pedect.predictor.BasePredictor import BasePredictor
+from pedect.predictor.Predictor import Predictor
 
 
-class FakePredictor(BasePredictor):
+class FakePredictor(Predictor):
     # fakeProbRange = (0.0, 0.8)
     # realProbRange = (0.3, 1.0)
 

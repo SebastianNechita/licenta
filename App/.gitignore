@@ -6,3 +6,4 @@ models
 ground-truth
 predicted
 predictions
+results/results.txt

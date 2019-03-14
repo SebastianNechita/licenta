@@ -1,3 +1,6 @@
+import os
+
+from PIL import Image
 from scipy.io import loadmat
 from collections import defaultdict
 import pims
@@ -7,7 +10,6 @@ from tqdm import tqdm_notebook
 import cv2 as cv
 from copy import deepcopy
 import matplotlib.pyplot as plt
-from scipy.ndimage import imread
 def addAnnotationsToImage(img, ann, config):
     img2 = deepcopy(img)
     for personAnn in ann:
@@ -95,10 +97,25 @@ def read_seq(path):
                 s += 8
         imgs.append(I)
     video = []
+    imgPath = os.path.join(".", "temporary.jpg")
+    f = open(imgPath, "w+")
+    f.write("a")
+    f.close()
     for img in imgs:
-        with open("temporary.jpg", "wb+") as f:
-            f.write(img)
-        video.append(imread("temporary.jpg"))
+        numTries = 100
+        for i in range(numTries):
+            try:
+                f = open(imgPath, "wb")
+                f.write(img)
+                f.close()
+                video.append(plt.imread(imgPath))
+                break
+            except IOError:
+                print("Small input error trying again...(", i, "/", numTries, ")")
+                if i == numTries - 1:
+                    raise IOError("Well it seems that the file can't be read!")
+
+    os.remove(imgPath)
 
     return video
     # return pims.PyAVReaderIndexed(path)

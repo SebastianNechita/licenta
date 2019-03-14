@@ -1,11 +1,13 @@
 from pedect.input.inputProcessing import *
-from pedect.predictor.BasePredictor import BasePredictor
+from pedect.predictor.Predictor import Predictor
 from pedect.predictor.PredictedBox import PredictedBox
-from pedect.predictor.VideoHolder import VideoHolder
+from pedect.predictor.VideoHolder import *
 
 
-class GroundTruthPredictor(BasePredictor, VideoHolder):
+class GroundTruthPredictor(Predictor, VideoHolder):
     def __init__(self, chosenDataset, setName, videoNr):
+        if isinstance(chosenDataset, str):
+            chosenDataset = findDatasetByName(chosenDataset)
         VideoHolder.__init__(self, chosenDataset, setName, videoNr)
         annotations_path = chosenDataset.getAnnotationsPath(setName, videoNr)
         self.annotations = read_vbb(annotations_path)
