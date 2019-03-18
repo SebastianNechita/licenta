@@ -1,13 +1,17 @@
 import copy
 import random
+from typing import Sequence
 
 from tqdm import tqdm
 
+from pedect.config.BasicConfig import BasicConfig
 from pedect.evaluator.Evaluator import Evaluator
 from pedect.predictor.GroundTruthPredictor import GroundTruthPredictor
 from pedect.predictor.MinScoreWrapperPredictor import MinScoreWrapperPredictor
+from pedect.predictor.Predictor import Predictor
 from pedect.predictor.TrackerPredictor import TrackerPredictor
 from pedect.predictor.YoloPredictor import YoloPredictor
+from pedect.tracker.Tracker import Tracker
 from pedect.utils.constants import MAX_VIDEO_LENGTH
 import time
 
@@ -60,7 +64,7 @@ class HPGenerator:
 
 
 
-def findGroundTruthFromVideoList(videosList):
+def findGroundTruthFromVideoList(videosList: Sequence[tuple]) -> Sequence[GroundTruthPredictor]:
     gtPredictors = []
     # i = 0
     for datasetName, setName, videoName in videosList:
@@ -73,7 +77,8 @@ def findGroundTruthFromVideoList(videosList):
         gtPredictors.append(gtPredictor)
     return gtPredictors
 
-def findTrackerPredictorsFromVideoList(tracker, config, gtPredictors):
+def findTrackerPredictorsFromVideoList(tracker: Tracker, config: BasicConfig,
+                                       gtPredictors: Sequence[GroundTruthPredictor]) -> Sequence[MinScoreWrapperPredictor]:
     predictors = []
     # i = 0
     for gtPredictor in gtPredictors:

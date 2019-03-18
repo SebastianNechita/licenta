@@ -51,6 +51,10 @@ class BasicConfig:
     minScorePrediction = 0.5
     maxAge = 100
 
+    imageGenerationSavePeriod = 10
+    imageGenerationSavePath = os.path.join(FINAL_IMAGES_DIR, "predicted")
+    imageGenerationSaveFileName = "annotations.csv"
+
     def getModelPath(self):
         return os.path.join(MODELS_DIR, str(self.trainId), self.modelName)
 

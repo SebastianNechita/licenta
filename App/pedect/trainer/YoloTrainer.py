@@ -1,3 +1,5 @@
+from typing import Sequence
+
 import numpy as np
 import keras.backend as K
 from keras.layers import Input, Lambda
@@ -13,14 +15,25 @@ from pedect.utils.constants import *
 
 
 class YoloTrainer(Trainer):
-    def __init__(self, config, annotationFiles = [ANNOTATIONS_FILE]):
+    def __init__(self, config, annotationFiles: Sequence[str]=None):
+        if annotationFiles is None:
+            annotationFiles = [ANNOTATIONS_FILE]
         self.config = config
         self.annotationFiles = annotationFiles
 
-    def createAnnotationFile(self):
-        path = os.path.join(BASE_DIR)
+    def createAnnotationFile(self) -> str:
+        path = os.path.join(BASE_DIR, 'temporary_annotations_file.csv')
+        writeFile = open(path, "w+")
+        for aFile in self.annotationFiles:
+            f = open(aFile, 'r')
+            for line in f.readlines():
+                if len(line) >= 2:
+                    writeFile.write(line)
+            f.close()
+        writeFile.close()
+        return path
 
-    def train(self):
+    def train(self) -> None:
         config = self.config
         freezeNoEpochs = config.freezeNoEpochs if config.loadPretrained else 0
         noFreezeNoEpochs = config.noFreezeNoEpochs
@@ -28,7 +41,7 @@ class YoloTrainer(Trainer):
 
         annotation_path = self.createAnnotationFile()
 
-        annotation_path = ANNOTATIONS_FILE
+        # annotation_path = ANNOTATIONS_FILE
         models_dir = os.path.join(MODELS_DIR, config.trainId)
         if not os.path.exists(models_dir):
             os.makedirs(models_dir)

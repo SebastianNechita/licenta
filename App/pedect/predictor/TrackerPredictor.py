@@ -1,10 +1,14 @@
+from pedect.config.BasicConfig import BasicConfig
+from pedect.predictor.GroundTruthPredictor import GroundTruthPredictor
 from pedect.predictor.Predictor import Predictor
 from pedect.predictor.PredictedBox import PredictedBox
+from pedect.tracker.Tracker import Tracker
 from pedect.utils.trackedObjectsOperations import *
 
 
 class TrackerPredictor(Predictor):
-    def __init__(self, normalPredictor, groundTruthPredictor, tracker, config):
+    def __init__(self, normalPredictor: Predictor, groundTruthPredictor: GroundTruthPredictor, tracker: Tracker,
+                 config: BasicConfig):
         self.predictor = normalPredictor
         self.groundTruthPredictor = groundTruthPredictor
         self.tracker = tracker
@@ -12,7 +16,7 @@ class TrackerPredictor(Predictor):
         self.activeObjects = {}
 
 
-    def predictForFrame(self, frameNr):
+    def predictForFrame(self, frameNr: int):
         image = self.groundTruthPredictor.getFrame(frameNr)  # predictor.getFrame(frameNr)
         self.activeObjects = refreshTrackedObjects(self.tracker, image, self.activeObjects)
         predictedBBoxes = self.predictor.predictForFrame(frameNr)

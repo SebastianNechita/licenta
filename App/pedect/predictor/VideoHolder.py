@@ -1,3 +1,4 @@
+from pedect.dataset import Dataset
 from pedect.dataset.CaltechDataset import CaltechDataset
 from pedect.input.inputProcessing import read_seq
 from pedect.utils.constants import CALTECH_DIR
@@ -5,7 +6,7 @@ from pedect.utils.constants import CALTECH_DIR
 
 class VideoHolder:
 
-    def __init__(self, chosenDataset, setName, videoNr):
+    def __init__(self, chosenDataset, setName: str, videoNr: str):
         if isinstance(chosenDataset, str):
             chosenDataset = findDatasetByName(chosenDataset)
         self.chosenDataset = chosenDataset
@@ -24,7 +25,7 @@ class VideoHolder:
         return self.video[frameNr]
 
 
-def findDatasetByName(datasetName):
+def findDatasetByName(datasetName: str) -> Dataset:
     if datasetName == 'caltech':
         dataset = CaltechDataset(CALTECH_DIR)
     else:

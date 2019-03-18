@@ -4,7 +4,7 @@ class PredictedBox:
     __label = ""
     __prob = 0.0
 
-    def __init__(self, x1, y1, x2, y2, label, prob):
+    def __init__(self, x1: int, y1: int, x2: int, y2: int, label: str, prob: float):
         assert isinstance(x1, int)
         assert isinstance(y1, int)
         assert isinstance(x2, int)

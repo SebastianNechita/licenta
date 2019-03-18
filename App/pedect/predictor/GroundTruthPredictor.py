@@ -5,14 +5,14 @@ from pedect.predictor.VideoHolder import *
 
 
 class GroundTruthPredictor(Predictor, VideoHolder):
-    def __init__(self, chosenDataset, setName, videoNr):
+    def __init__(self, chosenDataset, setName: str, videoNr: str):
         if isinstance(chosenDataset, str):
             chosenDataset = findDatasetByName(chosenDataset)
         VideoHolder.__init__(self, chosenDataset, setName, videoNr)
         annotations_path = chosenDataset.getAnnotationsPath(setName, videoNr)
         self.annotations = read_vbb(annotations_path)
 
-    def predictForFrame(self, frameNr):
+    def predictForFrame(self, frameNr: int):
         anns = getAnnotationsForFrame(frameNr, self.annotations)
         predictedBBoxes = []
         for ann in anns:

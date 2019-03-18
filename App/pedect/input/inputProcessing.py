@@ -1,4 +1,5 @@
 import os
+import time
 
 from PIL import Image
 from scipy.io import loadmat
@@ -10,6 +11,10 @@ from tqdm import tqdm_notebook
 import cv2 as cv
 from copy import deepcopy
 import matplotlib.pyplot as plt
+
+from pedect.utils.constants import IMAGES_READING_VERBOSE
+
+
 def addAnnotationsToImage(img, ann, config):
     img2 = deepcopy(img)
     for personAnn in ann:
@@ -60,6 +65,9 @@ def getAllLabels(annotations):
     return allLabels
 
 def read_seq(path):
+    start = time.time()
+    if IMAGES_READING_VERBOSE:
+        print("Reading ground truth")
     def read_header(ifile):
         feed = ifile.read(4)
         norpix = ifile.read(24)
@@ -116,7 +124,8 @@ def read_seq(path):
                     raise IOError("Well it seems that the file can't be read!")
 
     os.remove(imgPath)
-
+    if IMAGES_READING_VERBOSE:
+        print("Finished reading ground truth in ", time.time() - start)
     return video
     # return pims.PyAVReaderIndexed(path)
 
