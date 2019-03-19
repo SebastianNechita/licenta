@@ -1,35 +1,31 @@
+from typing import Sequence
+
 import cv2
+
+from pedect.predictor.PredictedBox import PredictedBox
+from pedect.utils.constants import MAX_VIDEO_LENGTH
 from pedect.utils.trackedObjectsOperations import *
 
-def addRectanglesToImage(tracker, image, activeObjects, predictedBBoxes, createThreshold):
+def addRectanglesToImage(image, predictedBBoxes: Sequence[PredictedBox], color: Sequence[int] = None):
+    if color is None:
+        color = [0, 255, 0]
     for predBox in predictedBBoxes:
-        if predBox.getProb() >= createThreshold:
-            color = [0, 255, 0]
-            box = predBox.getPos()
-            cv2.rectangle(image, (box[0] - 1, box[1] - 1), (box[2] + 1, box[3] + 1), color, 2)
+        x1 = predBox.getX1()
+        y1 = predBox.getY1()
+        x2 = predBox.getX2() - x1
+        y2 = predBox.getY2() - y1
+        cv2.rectangle(image, (x1, y1, x2, y2), color)
 
-    for activeId, v in activeObjects.items():
-        bbox = v.getPos()
-        tracker.track(activeId, image, bbox)
-        cv2.rectangle(image, (int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[3])), [0, 0, 255], 2)
-
-
-def playVideo(predictor, videoHolder, tracker, config):
+def playVideo(predictors, videoHolder, noFrames = MAX_VIDEO_LENGTH):
     cv2.namedWindow('Video', cv2.WINDOW_NORMAL)
     cv2.resizeWindow('Video', 640, 480)
-    activeObjects = {}
     video = videoHolder.getVideo()
-    for frameNr in range(videoHolder.getLength()):
+    for frameNr in range(min(videoHolder.getLength(), noFrames)):
         image = video[frameNr]  # predictor.getFrame(frameNr)
-        activeObjects = refreshTrackedObjects(tracker, image, activeObjects)
-        predictedBBoxes = predictor.predictForFrame(frameNr)
-        activeObjects = moveOrDestroyTrackedObjects(activeObjects, predictedBBoxes, config.surviveMovePercent,
-                                                    config.surviveThreshold)
-        activeObjects = createAndDestroyTrackedObjects(tracker, image, activeObjects, predictedBBoxes,
-                                                       config.createThreshold, config.removeThreshold, frameNr)
-        addRectanglesToImage(tracker, image, activeObjects, predictedBBoxes, config.createThreshold)
-
-        activeObjects = removeOldObjects(activeObjects, frameNr, config.maxAge)
+        # print("Frame %d" % frameNr)
+        for predictor, color in predictors:
+            predictedBBoxes = predictor.predictForFrame(frameNr)
+            addRectanglesToImage(image, predictedBBoxes, color)
         cv2.imshow('Video', image)
         cv2.waitKey(1)
     cv2.destroyAllWindows()

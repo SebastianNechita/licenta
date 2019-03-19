@@ -34,15 +34,22 @@ class YoloPredictor(Predictor):
         return os.path.join(self.savePath, str(frameNr) + ".prediction")
 
     def readPredictionBoxes(self, predictionPath):
-        f = open(predictionPath, "r")
-        boxes = []
-        for line in f.readlines():
-            v = line.split("\n")[0].split(" ")
-            if len(v) < 6:
-                continue
-            boxes.append(PredictedBox(int(v[0]), int(v[1]), int(v[2]), int(v[3]), v[5], float(v[4])))
-        f.close()
-        return boxes
+        noTries = 10
+        for i in range(noTries):
+            try:
+                f = open(predictionPath, "r")
+                boxes = []
+                for line in f.readlines():
+                    v = line.split("\n")[0].split(" ")
+                    if len(v) < 6:
+                        continue
+                    boxes.append(PredictedBox(int(v[0]), int(v[1]), int(v[2]), int(v[3]), v[5], float(v[4])))
+                f.close()
+                return boxes
+            except IOError as e:
+                if i < noTries - 1:
+                    print("Small input error %d / %d. Trying again!" % (i, noTries))
+                raise e
 
     def writePredictionBoxes(self, predictionPath, objects):
         createDirectoryIfNotExists(self.savePath)

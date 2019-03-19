@@ -9,6 +9,7 @@ from pedect.evaluator.HyperParametersTuner import HyperParametersTuner, findGrou
     findTrackerPredictorsFromVideoList
 from pedect.generator.NewDataGenerator import NewDataGenerator
 from pedect.predictor.GroundTruthPredictor import GroundTruthPredictor
+from pedect.predictor.TrackerPredictor import TrackerPredictor
 from pedect.predictor.YoloPredictor import YoloPredictor
 from pedect.tracker.Re3ObjectTracker import Re3ObjectTracker
 from pedect.trainer.YoloTrainer import YoloTrainer
@@ -17,7 +18,7 @@ from pedect.utils.demo import playVideo
 
 
 class Controller:
-    def __init__(self, config: BasicConfig):
+    def __init__(self, config: BasicConfig) -> None:
         self.config = config
         self.imgSaveTextPattern = "%s-%s-%s-%s.jpg"
         self.tracker = Re3ObjectTracker.getTracker()
@@ -43,13 +44,14 @@ class Controller:
         print("Found best config with MaP = %s:\n%s" % (result, str(bestConfig)))
         self.config = bestConfig
 
-    def playVideo(self, video: tuple, config: BasicConfig = -1) -> None:
-        if config == -1:
+    def playVideo(self, video: tuple, config: BasicConfig = None, nrFrames = MAX_VIDEO_LENGTH) -> None:
+        if config is None:
             config = self.config
         gtPredictor = GroundTruthPredictor(video[0], video[1], video[2])
         yoloPredictor = YoloPredictor(gtPredictor, config)
-        # trackerPredictor = TrackerPredictor(yoloPredictor, gtPredictor, self.tracker, config)
-        playVideo(yoloPredictor, gtPredictor, self.tracker, config)
+        trackerPredictor = TrackerPredictor(yoloPredictor, gtPredictor, self.tracker, config)
+        playVideo([(yoloPredictor, [0, 255, 0]), (gtPredictor, [255, 0, 0]), (trackerPredictor, [0, 0, 255])],
+                  gtPredictor, nrFrames)
 
     def generateNewData(self, videoList: Sequence[tuple], verbose: bool = False, nrFrames: int = MAX_VIDEO_LENGTH) \
             -> None:
