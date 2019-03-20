@@ -44,7 +44,7 @@ class Evaluator:
                 f.close()
 
 
-        command = 'python mAP\\main.py -q -np'
+        command = 'python %s -q -np' % os.path.join("mAP", "main.py")
         result = os.popen(command).read()
         self.result = float(result[5:-2])
         random.setstate(s)
