@@ -35,6 +35,7 @@ class YoloTrainer(Trainer):
 
     def train(self) -> None:
         config = self.config
+        print(config)
         freezeNoEpochs = config.freezeNoEpochs if config.loadPretrained else 0
         noFreezeNoEpochs = config.noFreezeNoEpochs
         is_tiny_version = config.isTiny  # default setting
@@ -84,6 +85,7 @@ class YoloTrainer(Trainer):
         # Train with frozen layers first, to get a stable loss.
         # Adjust num epochs to your dataset. This step is enough to obtain a not bad model.
         if freezeNoEpochs > 0:
+            print("In freeze phase: FreezeNoEpochs = %d" % freezeNoEpochs)
             model.compile(optimizer=Adam(lr=1e-3), loss={
                 # use custom yolo_loss Lambda layer.
                 'yolo_loss': lambda y_true, y_pred: y_pred})
@@ -105,6 +107,8 @@ class YoloTrainer(Trainer):
         # Unfreeze and continue training, to fine-tune.
         # Train longer if the result is not good.
         if noFreezeNoEpochs > 0:
+            print("In no freeze phase: NoFreezeNoEpochs = %d" % noFreezeNoEpochs)
+
             for i in range(len(model.layers)):
                 model.layers[i].trainable = True
             model.compile(optimizer=Adam(lr=1e-4),

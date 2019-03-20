@@ -17,13 +17,10 @@ class BasicConfig:
 
     def getDictionary(self):
         dict1 = BasicConfig.__dict__
-        dict2 = BasicConfig.__bases__[0].__dict__
         dict = {}
         for k, v in dict1.items():
-            if k in self.__dict__:
-                v = self.__dict__[k]
-            if k not in dict2 and not callable(v) and k[0] != '_':
-                dict[k] = v
+            if not callable(v) and k[0] != '_':
+                dict[k] = getattr(self, k)
         return dict
 
     def updateDictionary(self):
