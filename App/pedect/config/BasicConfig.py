@@ -30,7 +30,7 @@ class BasicConfig:
         for k, v in self.getDictionary().items():
             self.__dict__[k] = v
 
-    possibleLabels = {'people': (255, 0, 0), 'person-fa': (0, 0, 255), 'person': (0, 255, 0)}
+    # possibleLabels = {'people': (255, 0, 0), 'person-fa': (0, 0, 255), 'person': (0, 255, 0)}
     # For training
     trainId = "2"
     modelName = "trained_weights_final.h5"
