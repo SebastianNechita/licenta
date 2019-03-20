@@ -99,6 +99,8 @@ class Controller:
         sets = [x for x in sets if "annotations" != x]
         result = []
         for videoSet in sets:
+            if not os.path.isdir(os.path.join(datasetPath, videoSet)):
+                continue
             videos = os.listdir(os.path.join(datasetPath, videoSet))
             for videoName in videos:
                 result.append((datasetName, str(videoSet), str(videoName.split(".seq")[0])))
