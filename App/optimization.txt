@@ -1,0 +1,128 @@
+['/home/sebin/licenta/App', '/home/sebin/licenta/App/keras-yolo3', '/usr/lib/python35.zip', '/usr/lib/python3.5', '/usr/lib/python3.5/plat-x86_64-linux-gnu', '/usr/lib/python3.5/lib-dynload', '/home/sebin/.local/lib/python3.5/site-packages', '/usr/local/lib/python3.5/dist-packages', '/usr/lib/python3/dist-packages', '/usr/local/lib/python3.5/dist-packages/IPython/extensions', './keras-yolo3/', './re3-tensorflow/']
+
+WARNING: The TensorFlow contrib module will not be included in TensorFlow 2.0.
+For more information, please see:
+  * https://github.com/tensorflow/community/blob/master/rfcs/20180907-contrib-sunset.md
+  * https://github.com/tensorflow/addons
+If you depend on functionality not listed there, please file an issue.
+
+Restoring:
+re3/conv1/W_conv -> 	[11, 11, 3, 96] = 0MB
+re3/conv1/b_conv -> 	[96] = 0MB
+re3/conv1_skip/W_conv -> 	[1, 1, 96, 16] = 0MB
+re3/conv1_skip/b_conv -> 	[16] = 0MB
+re3/conv1_skip/prelu -> 	[16] = 0MB
+re3/conv2/W_conv -> 	[5, 5, 48, 256] = 1MB
+re3/conv2/b_conv -> 	[256] = 0MB
+re3/conv2_skip/W_conv -> 	[1, 1, 256, 32] = 0MB
+re3/conv2_skip/b_conv -> 	[32] = 0MB
+re3/conv2_skip/prelu -> 	[32] = 0MB
+re3/conv3/W_conv -> 	[3, 3, 256, 384] = 3MB
+re3/conv3/b_conv -> 	[384] = 0MB
+re3/conv4/W_conv -> 	[3, 3, 192, 384] = 2MB
+re3/conv4/b_conv -> 	[384] = 0MB
+re3/conv5/W_conv -> 	[3, 3, 192, 256] = 1MB
+re3/conv5/b_conv -> 	[256] = 0MB
+re3/conv5_skip/W_conv -> 	[1, 1, 256, 64] = 0MB
+re3/conv5_skip/b_conv -> 	[64] = 0MB
+re3/conv5_skip/prelu -> 	[64] = 0MB
+re3/fc6/W_fc -> 	[74208, 1024] = 303MB
+re3/fc6/b_fc -> 	[1024] = 0MB
+re3/fc_output/W_fc -> 	[512, 4] = 0MB
+re3/fc_output/b_fc -> 	[4] = 0MB
+re3/lstm1/rnn/lstm_cell/bias -> 	[2048] = 0MB
+re3/lstm1/rnn/lstm_cell/kernel -> 	[1536, 2048] = 12MB
+re3/lstm1/rnn/lstm_cell/w_f_diag -> 	[512] = 0MB
+re3/lstm1/rnn/lstm_cell/w_i_diag -> 	[512] = 0MB
+re3/lstm1/rnn/lstm_cell/w_o_diag -> 	[512] = 0MB
+re3/lstm2/rnn/lstm_cell/bias -> 	[2048] = 0MB
+re3/lstm2/rnn/lstm_cell/kernel -> 	[2048, 2048] = 16MB
+re3/lstm2/rnn/lstm_cell/w_f_diag -> 	[512] = 0MB
+re3/lstm2/rnn/lstm_cell/w_i_diag -> 	[512] = 0MB
+re3/lstm2/rnn/lstm_cell/w_o_diag -> 	[512] = 0MB
+
+
+Did not restore:beta1_power
+	beta2_power
+	global_step
+	re3/conv1/W_conv/Adam
+	re3/conv1/W_conv/Adam_1
+	re3/conv1/b_conv/Adam
+	re3/conv1/b_conv/Adam_1
+	re3/conv1_skip/W_conv/Adam
+	re3/conv1_skip/W_conv/Adam_1
+	re3/conv1_skip/b_conv/Adam
+	re3/conv1_skip/b_conv/Adam_1
+	re3/conv1_skip/prelu/Adam
+	re3/conv1_skip/prelu/Adam_1
+	re3/conv2/W_conv/Adam
+	re3/conv2/W_conv/Adam_1
+	re3/conv2/b_conv/Adam
+	re3/conv2/b_conv/Adam_1
+	re3/conv2_skip/W_conv/Adam
+	re3/conv2_skip/W_conv/Adam_1
+	re3/conv2_skip/b_conv/Adam
+	re3/conv2_skip/b_conv/Adam_1
+	re3/conv2_skip/prelu/Adam
+	re3/conv2_skip/prelu/Adam_1
+	re3/conv3/W_conv/Adam
+	re3/conv3/W_conv/Adam_1
+	re3/conv3/b_conv/Adam
+	re3/conv3/b_conv/Adam_1
+	re3/conv4/W_conv/Adam
+	re3/conv4/W_conv/Adam_1
+	re3/conv4/b_conv/Adam
+	re3/conv4/b_conv/Adam_1
+	re3/conv5/W_conv/Adam
+	re3/conv5/W_conv/Adam_1
+	re3/conv5/b_conv/Adam
+	re3/conv5/b_conv/Adam_1
+	re3/conv5_skip/W_conv/Adam
+	re3/conv5_skip/W_conv/Adam_1
+	re3/conv5_skip/b_conv/Adam
+	re3/conv5_skip/b_conv/Adam_1
+	re3/conv5_skip/prelu/Adam
+	re3/conv5_skip/prelu/Adam_1
+	re3/fc6/W_fc/Adam
+	re3/fc6/W_fc/Adam_1
+	re3/fc6/b_fc/Adam
+	re3/fc6/b_fc/Adam_1
+	re3/fc_output/W_fc/Adam
+	re3/fc_output/W_fc/Adam_1
+	re3/fc_output/b_fc/Adam
+	re3/fc_output/b_fc/Adam_1
+	re3/lstm1/rnn/lstm_cell/bias/Adam
+	re3/lstm1/rnn/lstm_cell/bias/Adam_1
+	re3/lstm1/rnn/lstm_cell/kernel/Adam
+	re3/lstm1/rnn/lstm_cell/kernel/Adam_1
+	re3/lstm1/rnn/lstm_cell/w_f_diag/Adam
+	re3/lstm1/rnn/lstm_cell/w_f_diag/Adam_1
+	re3/lstm1/rnn/lstm_cell/w_i_diag/Adam
+	re3/lstm1/rnn/lstm_cell/w_i_diag/Adam_1
+	re3/lstm1/rnn/lstm_cell/w_o_diag/Adam
+	re3/lstm1/rnn/lstm_cell/w_o_diag/Adam_1
+	re3/lstm2/rnn/lstm_cell/bias/Adam
+	re3/lstm2/rnn/lstm_cell/bias/Adam_1
+	re3/lstm2/rnn/lstm_cell/kernel/Adam
+	re3/lstm2/rnn/lstm_cell/kernel/Adam_1
+	re3/lstm2/rnn/lstm_cell/w_f_diag/Adam
+	re3/lstm2/rnn/lstm_cell/w_f_diag/Adam_1
+	re3/lstm2/rnn/lstm_cell/w_i_diag/Adam
+	re3/lstm2/rnn/lstm_cell/w_i_diag/Adam_1
+	re3/lstm2/rnn/lstm_cell/w_o_diag/Adam
+	re3/lstm2/rnn/lstm_cell/w_o_diag/Adam_1
+Restored ./re3-tensorflow/tracker/../.././re3-tensorflow/logs/checkpoints/model.ckpt-260946
+Reading ground truth
+Finished reading ground truth in  6.974680185317993
+Reading ground truth
+Finished reading ground truth in  6.643178939819336
+Reading ground truth
+Finished reading ground truth in  6.692999601364136
+Reading ground truth
+Finished reading ground truth in  6.753181457519531
+Reading ground truth
+Finished reading ground truth in  6.8035783767700195
+./models/5/trained_weights_final.h5 model, anchors, and classes loaded.
+YoloPredictor   --->  4.59
+{'removeThreshold': 0.0, 'surviveThreshold': 1.0, 'minScorePrediction': 0.0, 'surviveMovePercent': 1.0, 'createThreshold': 0.0}  --->  4.59
+{'removeThreshold': 0.5, 'surviveThreshold': 0.2, 'minScorePrediction': 0.5, 'surviveMovePercent': 0.0, 'createThreshold': 0.9}  --->  2.32
