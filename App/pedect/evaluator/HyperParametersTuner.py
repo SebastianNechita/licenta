@@ -39,8 +39,10 @@ class HyperParametersTuner:
             # print("Found new running configuration!")
             predictors = findTrackerPredictorsFromVideoList(tracker, newConfig, gtPredictors)
             # print("Found predictors!")
-
-            result = Evaluator(predictors, gtPredictors, maxFrames).evaluate(withPartialOutput)
+            evaluator = Evaluator(predictors, gtPredictors, maxFrames)
+            result = evaluator.evaluate(withPartialOutput)
+            del evaluator
+            del predictors
             print(str(newConfig.getTrackingHyperParameters()), " ---> ", result)
             if result >= bestResult[1]:
                 bestResult = (newConfig, result)
