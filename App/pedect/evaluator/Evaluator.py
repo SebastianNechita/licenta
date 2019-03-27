@@ -34,7 +34,10 @@ class Evaluator:
         emptyDirectory(predictedPath)
         emptyDirectory(gtPath)
         i = 0
-        for predictor, groundTruthPredictor in zip(self.predictors, self.groundTruthPredictors):
+        toIterate = zip(self.predictors, self.groundTruthPredictors)
+        if verbose:
+            toIterate = tqdm(toIterate)
+        for predictor, groundTruthPredictor in toIterate:
             i = i + 1
             rangeToIterate = range(min(groundTruthPredictor.getLength(), self.maxFrames))
             if verbose:
