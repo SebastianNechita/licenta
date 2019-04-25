@@ -12,17 +12,16 @@ from pedect.generator.NewDataGenerator import NewDataGenerator
 from pedect.predictor.GroundTruthPredictor import GroundTruthPredictor
 from pedect.predictor.TrackerPredictor import TrackerPredictor
 from pedect.predictor.YoloPredictor import YoloPredictor
-from pedect.tracker.Re3ObjectTracker import Re3ObjectTracker
+from pedect.tracker.Tracker import Tracker
 from pedect.trainer.YoloTrainer import YoloTrainer
 from pedect.utils.constants import MAX_VIDEO_LENGTH, ANNOTATIONS_FILE, DATA_DIR
 from pedect.utils.demo import playVideo
 
-
 class Controller:
-    def __init__(self, config: BasicConfig) -> None:
+    def __init__(self, config: BasicConfig, tracker: Tracker) -> None:
         self.config = config
         self.imgSaveTextPattern = "%s-%s-%s-%s.jpg"
-        self.tracker = Re3ObjectTracker.getTracker()
+        self.tracker = tracker
         self.trainer = YoloTrainer(config)
         self.converter = ConverterToImagesYoloV3(self.imgSaveTextPattern)
 

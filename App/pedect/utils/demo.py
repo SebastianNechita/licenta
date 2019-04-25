@@ -21,7 +21,7 @@ def playVideo(predictors, videoHolder, noFrames = MAX_VIDEO_LENGTH):
     cv2.resizeWindow('Video', 640, 480)
     video = videoHolder.getVideo()
     for frameNr in range(min(videoHolder.getLength(), noFrames)):
-        image = video[frameNr]  # predictor.getFrame(frameNr)
+        image = video[frameNr][:]  # predictor.getFrame(frameNr)
         # print("Frame %d" % frameNr)
         for predictor, color in predictors:
             predictedBBoxes = predictor.predictForFrame(frameNr)

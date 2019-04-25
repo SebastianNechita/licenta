@@ -16,6 +16,7 @@ class YOLOManager:
     def getYoloObject(config):
         uniqueValue = (config.getModelPath(), config.getAnchorsPath())
         if uniqueValue not in YOLOManager.existentYoloObjects:
+            print("Created a new YOLO object!")
             YOLOManager.existentYoloObjects[uniqueValue] = YOLO(model_path = config.getModelPath(),
                                                                 classes_path = LABELS_FILE,
                                                                 anchors_path = config.getAnchorsPath(),
@@ -23,6 +24,9 @@ class YOLOManager:
         return YOLOManager.existentYoloObjects[uniqueValue]
 
 class YoloPredictor(Predictor):
+    def startNewPrediction(self):
+        pass
+
     def __init__(self, videoHolder, config):
         self.videoHolder = videoHolder
         self.config = config

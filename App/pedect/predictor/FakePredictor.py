@@ -4,6 +4,9 @@ from pedect.predictor.Predictor import Predictor
 
 
 class FakePredictor(Predictor):
+    def startNewPrediction(self):
+        pass
+
     # fakeProbRange = (0.0, 0.8)
     # realProbRange = (0.3, 1.0)
 

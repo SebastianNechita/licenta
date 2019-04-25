@@ -38,12 +38,13 @@ def positionBetween(b1: tuple, b2: tuple, percent: float) -> tuple:
         a.append(b1[i] * percent + b2[i] * (1 - percent))
     return tuple(a)
 
-def moveOrDestroyTrackedObjects(activeObjects, predictedBBoxes, surviveMovePercent, surviveThreshold):
+def moveOrDestroyTrackedObjects(activeObjects, predictedBBoxes, surviveMovePercent, surviveThreshold, maxNrOfObjectsPerFrame):
     objectsProbabilities = {}
     if len(predictedBBoxes) == 0:
         activeObjects = {}
     else:
         survivingObjects = {}
+        accurateList = []
         for activeId, v in activeObjects.items():
             intersections = [math.sqrt(IOU(v.getPos(), predBox.getPos()) * predBox.getProb()) if v.getLabel() == predBox.getLabel() else 0
                              for predBox in predictedBBoxes]
@@ -52,9 +53,14 @@ def moveOrDestroyTrackedObjects(activeObjects, predictedBBoxes, surviveMovePerce
             predBox = predictedBBoxes[bestPos].getPos()
             if intersections[bestPos] >= surviveThreshold:
                 survivingObjects[activeId] = v
+                accurateList.append((maxValue, activeId))
                 objectsProbabilities[activeId] = maxValue
                 v.setPos(positionBetween(predBox, v.getPos(), surviveMovePercent))
-        activeObjects = survivingObjects
+        if len(accurateList) > maxNrOfObjectsPerFrame:
+            accurateList = accurateList[:maxNrOfObjectsPerFrame]
+        accurateList = [x[1] for x in accurateList]
+        activeObjects = {k: survivingObjects[k] for k in accurateList}
+        assert len(activeObjects) <= maxNrOfObjectsPerFrame
     return activeObjects, objectsProbabilities
 
 

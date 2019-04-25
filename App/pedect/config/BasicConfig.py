@@ -46,6 +46,7 @@ class BasicConfig:
     surviveThreshold = 0.2
     surviveMovePercent = 0.0
     minScorePrediction = 0.5
+    maxNrOfObjectsPerFrame = 10
     maxAge = 100
 
     imageGenerationSavePeriod = 10

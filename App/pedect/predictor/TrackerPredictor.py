@@ -7,6 +7,7 @@ from pedect.utils.trackedObjectsOperations import *
 
 
 class TrackerPredictor(Predictor):
+
     def __init__(self, normalPredictor: Predictor, groundTruthPredictor: GroundTruthPredictor, tracker: Tracker,
                  config: BasicConfig):
         self.predictor = normalPredictor
@@ -22,15 +23,26 @@ class TrackerPredictor(Predictor):
         predictedBBoxes = self.predictor.predictForFrame(frameNr)
         self.activeObjects, probabilitiesDictionary = moveOrDestroyTrackedObjects(self.activeObjects, predictedBBoxes,
                                                                                   self.config.surviveMovePercent,
-                                                                                  self.config.surviveThreshold)
+                                                                                  self.config.surviveThreshold,
+                                                                                  self.config.maxNrOfObjectsPerFrame)
         self.activeObjects = createAndDestroyTrackedObjects(self.tracker, image, self.activeObjects, predictedBBoxes,
                                                             self.config.createThreshold, self.config.removeThreshold,
                                                             frameNr, probabilitiesDictionary)
         self.activeObjects = removeOldObjects(self.activeObjects, frameNr, self.config.maxAge)
+        # # # #
+        # # # #
+        # # # #
+        # # # # sa nu uiti sa mai faci o chestie aici -> aia cu sa se propage schimbarile zise de reteaua neuronala
+        # # # #
+        # # # #
+        # # # #
         return [PredictedBox(int(v.getPos()[0] + 0.5), int(v.getPos()[1] + 0.5), int(v.getPos()[2] + 0.5),
                              int(v.getPos()[3] + 0.5), v.getLabel(), probabilitiesDictionary[k])
                 for k, v in self.activeObjects.items()]
 
-
+    def startNewPrediction(self):
+        self.predictor.startNewPrediction()
+        self.tracker.clearTracker()
+        self.groundTruthPredictor.startNewPrediction()
 
 

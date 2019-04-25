@@ -1,6 +1,7 @@
 import os
 import random
 
+from pedect.tracker.Tracker import Tracker
 from pedect.utils.constants import MAX_VIDEO_LENGTH
 from pedect.utils.osUtils import emptyDirectory
 from tqdm import tqdm
@@ -42,10 +43,14 @@ class Evaluator:
             rangeToIterate = range(min(groundTruthPredictor.getLength(), self.maxFrames))
             if verbose:
                 rangeToIterate = tqdm(rangeToIterate)
+            predictor.startNewPrediction()
+            if hasattr(predictor, 'tracker') and isinstance(predictor.tracker, Tracker):
+                predictor.tracker.clearTracker()
             for frameNr in rangeToIterate:
                 fileName = "%d-%d.txt" % (i, frameNr)
                 groundTruthObjects = groundTruthPredictor.predictForFrame(frameNr)
                 predictedObjects = predictor.predictForFrame(frameNr)
+                # predictedObjects = groundTruthPredictor.predictForFrame(frameNr)
                 f = open(os.path.join(gtPath, fileName), "a+")
                 [f.write("%s %d %d %d %d\n" % (o.getLabel(), o.getX1(), o.getY1(), o.getX2(), o.getY2()))
                  for o in groundTruthObjects]

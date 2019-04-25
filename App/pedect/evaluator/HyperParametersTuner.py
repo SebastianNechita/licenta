@@ -8,13 +8,11 @@ from pedect.config.BasicConfig import BasicConfig
 from pedect.evaluator.Evaluator import Evaluator
 from pedect.predictor.GroundTruthPredictor import GroundTruthPredictor
 from pedect.predictor.MinScoreWrapperPredictor import MinScoreWrapperPredictor
-from pedect.predictor.Predictor import Predictor
 from pedect.predictor.TrackerPredictor import TrackerPredictor
 from pedect.predictor.YoloPredictor import YoloPredictor
 from pedect.tracker.Tracker import Tracker
 from pedect.utils.constants import MAX_VIDEO_LENGTH
 import time
-
 
 class HyperParametersTuner:
 
@@ -47,6 +45,7 @@ class HyperParametersTuner:
             if result >= bestResult[1]:
                 bestResult = (newConfig, result)
 
+
         return bestResult
 
 class HPGenerator:
@@ -61,7 +60,7 @@ class HPGenerator:
             return a
         result = []
         for cRange in self.ranges:
-            result.append(random.random() * (cRange[1] - cRange[0]) + cRange[0])
+            result.append(random.randint(0, 100) / 100 * (cRange[1] - cRange[0]) + cRange[0])
         return tuple(result)
 
 

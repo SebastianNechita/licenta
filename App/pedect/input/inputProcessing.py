@@ -13,6 +13,7 @@ from copy import deepcopy
 import matplotlib.pyplot as plt
 
 from pedect.utils.constants import IMAGES_READING_VERBOSE
+from pedect.utils.osUtils import emptyDirectory
 
 
 def addAnnotationsToImage(img, ann, config):
@@ -64,10 +65,12 @@ def getAllLabels(annotations):
         allLabels = allLabels.union(set(thisFrameLabels))
     return allLabels
 
+
 def read_seq(path):
     start = time.time()
     if IMAGES_READING_VERBOSE:
         print("Reading ground truth")
+
     def read_header(ifile):
         feed = ifile.read(4)
         norpix = ifile.read(24)
@@ -85,45 +88,49 @@ def read_seq(path):
                 'num_frames': params[6]}
 
     assert path[-3:] == 'seq', path
-    ifile = open(path, 'rb')
-    params = read_header(ifile)
-    bytes = open(path, 'rb').read()
+    folderPath = path[:-4]
+    confirmationPath = os.path.join(folderPath, "done.txt")
+    if not os.path.isfile(confirmationPath):
+        if IMAGES_READING_VERBOSE:
+            print("The Reading might take a bit longer")
+        emptyDirectory(folderPath)
 
-    imgs = []
-    extra = 8
-    s = 1024
-    for i in range(params['num_frames']):
-        tmp = struct.unpack_from('@I', bytes[s:s + 4])[0]
-        I = bytes[s + 4:s + tmp]
-        s += tmp + extra
-        if i == 0:
-            val = struct.unpack_from('@B', bytes[s:s + 1])[0]
-            if val != 0:
-                s -= 4
-            else:
-                extra += 8
-                s += 8
-        imgs.append(I)
-    video = []
-    imgPath = os.path.join(".", "temporary.jpg")
-    f = open(imgPath, "w+")
-    f.write("a")
-    f.close()
-    for img in imgs:
-        numTries = 100
-        for i in range(numTries):
-            try:
-                f = open(imgPath, "wb")
-                f.write(img)
-                f.close()
-                video.append(plt.imread(imgPath))
-                break
-            except IOError:
-                print("Small input error trying again...(", i, "/", numTries, ")")
-                if i == numTries - 1:
-                    raise IOError("Well it seems that the file can't be read!")
+        ifile = open(path, 'rb')
+        params = read_header(ifile)
+        bytes = open(path, 'rb').read()
 
-    os.remove(imgPath)
+        imgs = []
+        extra = 8
+        s = 1024
+        for i in range(params['num_frames']):
+            tmp = struct.unpack_from('@I', bytes[s:s + 4])[0]
+            I = bytes[s + 4:s + tmp]
+            s += tmp + extra
+            if i == 0:
+                val = struct.unpack_from('@B', bytes[s:s + 1])[0]
+                if val != 0:
+                    s -= 4
+                else:
+                    extra += 8
+                    s += 8
+            imgs.append(I)
+        for nr, img in enumerate(imgs):
+            numTries = 100
+            imgPath = os.path.join(folderPath, str(nr) + ".jpg")
+
+            for i in range(numTries):
+                try:
+                    f = open(imgPath, "wb+")
+                    f.write(img)
+                    f.close()
+                    #                     video.append(plt.imread(imgPath))
+                    break
+                except IOError:
+                    print("Small input error trying again...(", i, "/", numTries, ")")
+                    if i == numTries - 1:
+                        raise IOError("Well it seems that the file can't be read!")
+        open(confirmationPath, "w+").close()
+    video = [cv.imread(os.path.join(folderPath, "%d.jpg" % i)) for i in range(len(os.listdir(folderPath)) - 1)]
     if IMAGES_READING_VERBOSE:
         print("Finished reading ground truth in ", time.time() - start)
     return video
