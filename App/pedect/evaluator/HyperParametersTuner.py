@@ -14,17 +14,29 @@ from pedect.tracker.Tracker import Tracker
 from pedect.tracker.trackerHelper import getTrackerFromConfig
 from pedect.utils.constants import MAX_VIDEO_LENGTH
 import time
-
+import pedect.utils.parallel
 from pedect.utils.parallel import executor
 
 
 class HyperParametersTuner:
 
     @staticmethod
-    def __findAnswerForConfig(config, tracker, gtPredictors, maxFrames, withPartialOutput) -> float:
+    def __findAnswerForConfig(config, tracker, gtPredictors, maxFrames, withPartialOutput, threadNr) -> float:
+        print("I was started! -----> I am thread " + str(threadNr))
         predictors = findTrackerPredictorsFromVideoList(tracker, config, gtPredictors)
         result = Evaluator(predictors, gtPredictors, maxFrames).evaluate(withPartialOutput)
+        print(str(config.getTrackingHyperParameters()), " ---> ", result, threadNr)
+        print("I am done! -------> I am thread " + str(threadNr))
+        return result
+
+    @staticmethod
+    def __giveAns(config, tracker, gtPredictors, maxFrames, withPartialOutput, threadNr) -> float:
+        print("I was started! -----> I am thread " + str(threadNr))
+        predictors = findTrackerPredictorsFromVideoList(tracker, config, gtPredictors)
+        result = Evaluator(predictors, gtPredictors, maxFrames).evaluate(withPartialOutput)
+        result = 3
         print(str(config.getTrackingHyperParameters()), " ---> ", result)
+        print("I am done! -------> I am thread " + str(threadNr))
         return result
 
     @staticmethod
@@ -40,7 +52,8 @@ class HyperParametersTuner:
         unaffected = (0.0, 0.0, 1.0, 1.0, 0.0)
         hpGenerator = HPGenerator([unaffected, original], [ctRange, rtRange, stRange, smpRange, mspRange])
         executionList = []
-        for _ in tqdm(range(noIterations)):
+        thrNo = 0
+        for _ in range(noIterations):
             r = hpGenerator.getNextRange()
             newConfig = copy.deepcopy(config)
             newConfig.createThreshold, newConfig.removeThreshold, newConfig.surviveThreshold, \
@@ -48,15 +61,28 @@ class HyperParametersTuner:
             tracker = getTrackerFromConfig(newConfig)
             if not tracker.parallelizable():
                 result = HyperParametersTuner.__findAnswerForConfig(newConfig, tracker, gtPredictors, maxFrames,
-                                                                    withPartialOutput)
+                                                                    withPartialOutput, thrNo)
                 if result >= bestResult[1]:
                     bestResult = (newConfig, result)
             else:
-                executionList.append((newConfig, executor.submit(HyperParametersTuner.__findAnswerForConfig, newConfig,
-                                                                 tracker, gtPredictors, maxFrames, withPartialOutput)))
-
-        for result in executionList:
+                print("ans = ")
+                # print(HyperParametersTuner.__findAnswerForConfig(newConfig, tracker, gtPredictors, maxFrames,
+                #                                                     withPartialOutput, thrNo))
+                # print(HyperParametersTuner.__giveAns())
+                print(executor.submit(HyperParametersTuner.__giveAns, newConfig, tracker, gtPredictors, maxFrames,
+                                      withPartialOutput, thrNo).result())
+                # print(executor.submit(HyperParametersTuner.__findAnswerForConfig, newConfig,
+                #                 tracker, gtPredictors, maxFrames, withPartialOutput, thrNo).result())
+                # executionList.append((newConfig, executor.submit(HyperParametersTuner.__findAnswerForConfig, newConfig,
+                #                                                  tracker, gtPredictors, maxFrames, withPartialOutput, thrNo)))
+                print("Started a thread!")
+            thrNo = thrNo + 1
+        thrNo = 0
+        for result in tqdm(executionList):
+            print("Waiting for a thread! -> thread number " + str(thrNo))
+            thrNo = thrNo + 1
             actualResult = result[1].result()
+            print("Yaaaay we have a value!")
             if actualResult >= bestResult[1]:
                 bestResult = (result[0], actualResult)
 

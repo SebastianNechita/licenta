@@ -13,7 +13,7 @@ PREDICTIONS_PATH = os.path.join(BASE_DIR, "predictions")
 YOLO_DIR = os.path.join(BASE_DIR, 'keras-yolo3')
 
 MAX_VIDEO_LENGTH = 10000000
-MAX_WORKERS = 8  # for parallelization
+MAX_WORKERS = 1  # for parallelization
 
 
 IMAGES_READING_VERBOSE = True

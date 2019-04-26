@@ -15,7 +15,8 @@ import argparse
 import math
 
 import numpy as np
-import uuid
+
+from pedect.utils.parallel import mainMutex
 
 
 class Evaluator:
@@ -31,27 +32,43 @@ class Evaluator:
             return self.result
         s = random.getstate()
         random.seed(3)
-        uuidFolder = str(uuid.uuid4())
-        basePath = os.path.join(os.getcwd(), uuidFolder)
-        emptyDirectory(basePath)
-        os.chdir(uuidFolder)
+
+        toIterate = zip(self.predictors, self.groundTruthPredictors)
+        if verbose:
+            toIterate = tqdm(toIterate)
+        bigAnswersList = []
+
+        for predictor, groundTruthPredictor in toIterate:
+            rangeToIterate = range(min(groundTruthPredictor.getLength(), self.maxFrames))
+            if verbose:
+                rangeToIterate = tqdm(rangeToIterate)
+            answersList = []
+            for frameNr in rangeToIterate:
+                groundTruthObjects = groundTruthPredictor.predictForFrame(frameNr)
+                predictedObjects = predictor.predictForFrame(frameNr)
+                answersList.append((groundTruthObjects, predictedObjects))
+            try:
+                times = list(predictor.predictor.times)
+                print("Predictor times slices are ", [(str((i / sum(times))) + "%") for i in list(times)])
+            except Exception:
+                pass
+            predictor.finishPrediction()  # frees the memory of the trackers
+            bigAnswersList.append(answersList)
+        print("Here before mutex accuire!")
+        mainMutex.acquire()
+        print("Mutex accuired!")
+        basePath = os.path.join(os.getcwd())
         gtPath = os.path.join(basePath, 'ground-truth')
         predictedPath = os.path.join(basePath, 'predicted')
         emptyDirectory(predictedPath)
         emptyDirectory(gtPath)
         i = 0
-        toIterate = zip(self.predictors, self.groundTruthPredictors)
-        if verbose:
-            toIterate = tqdm(toIterate)
-        for predictor, groundTruthPredictor in toIterate:
+        for answersList in bigAnswersList:
             i = i + 1
-            rangeToIterate = range(min(groundTruthPredictor.getLength(), self.maxFrames))
-            if verbose:
-                rangeToIterate = tqdm(rangeToIterate)
-            for frameNr in rangeToIterate:
+            frameNr = 0
+            for groundTruthObjects, predictedObjects in answersList:
                 fileName = "%d-%d.txt" % (i, frameNr)
-                groundTruthObjects = groundTruthPredictor.predictForFrame(frameNr)
-                predictedObjects = predictor.predictForFrame(frameNr)
+                frameNr = frameNr + 1
                 # predictedObjects = groundTruthPredictor.predictForFrame(frameNr)
                 f = open(os.path.join(gtPath, fileName), "a+")
                 [f.write("%s %d %d %d %d\n" % (o.getLabel(), o.getX1(), o.getY1(), o.getX2(), o.getY2()))
@@ -61,12 +78,6 @@ class Evaluator:
                 [f.write("%s %f %d %d %d %d\n" % (o.getLabel(), o.getProb(), o.getX1(), o.getY1(), o.getX2(), o.getY2()))
                  for o in predictedObjects]
                 f.close()
-            try:
-                times = list(predictor.predictor.times)
-                print("Predictor times slices are ", [(str((i / sum(times))) + "%") for i in list(times)])
-            except Exception:
-                pass
-            predictor.finishPrediction()  # frees the memory of the trackers
 
 
         args = A()
@@ -77,9 +88,10 @@ class Evaluator:
         # result = os.popen(command).read()
         # self.result = float(result[5:-2])
         random.setstate(s)
+        print("Here before mutex release!")
+        mainMutex.release()
+        print("Mutex released!")
         self.computed = True
-        os.chdir("..")
-        os.removedirs(uuidFolder)
         return self.result
 
 
