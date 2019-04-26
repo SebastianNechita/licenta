@@ -11,13 +11,24 @@ from pedect.predictor.MinScoreWrapperPredictor import MinScoreWrapperPredictor
 from pedect.predictor.TrackerPredictor import TrackerPredictor
 from pedect.predictor.YoloPredictor import YoloPredictor
 from pedect.tracker.Tracker import Tracker
+from pedect.tracker.trackerHelper import getTrackerFromConfig
 from pedect.utils.constants import MAX_VIDEO_LENGTH
 import time
+
+from pedect.utils.parallel import executor
+
 
 class HyperParametersTuner:
 
     @staticmethod
-    def tryToFindBestConfig(config, tracker, videosList, noIterations, ctRange, rtRange, stRange, smpRange, mspRange,
+    def __findAnswerForConfig(config, tracker, gtPredictors, maxFrames, withPartialOutput) -> float:
+        predictors = findTrackerPredictorsFromVideoList(tracker, config, gtPredictors)
+        result = Evaluator(predictors, gtPredictors, maxFrames).evaluate(withPartialOutput)
+        print(str(config.getTrackingHyperParameters()), " ---> ", result)
+        return result
+
+    @staticmethod
+    def tryToFindBestConfig(config, videosList, noIterations, ctRange, rtRange, stRange, smpRange, mspRange,
                             maxFrames = MAX_VIDEO_LENGTH, withPartialOutput = False):
         gtPredictors = findGroundTruthFromVideoList(videosList)
         yoloPredictors = [YoloPredictor(gtPredictor, config) for gtPredictor in gtPredictors]
@@ -28,23 +39,26 @@ class HyperParametersTuner:
                     config.minScorePrediction)
         unaffected = (0.0, 0.0, 1.0, 1.0, 0.0)
         hpGenerator = HPGenerator([unaffected, original], [ctRange, rtRange, stRange, smpRange, mspRange])
+        executionList = []
         for _ in tqdm(range(noIterations)):
             r = hpGenerator.getNextRange()
             newConfig = copy.deepcopy(config)
             newConfig.createThreshold, newConfig.removeThreshold, newConfig.surviveThreshold, \
                 newConfig.surviveMovePercent, newConfig.minScorePrediction = r
+            tracker = getTrackerFromConfig(newConfig)
+            if not tracker.parallelizable():
+                result = HyperParametersTuner.__findAnswerForConfig(newConfig, tracker, gtPredictors, maxFrames,
+                                                                    withPartialOutput)
+                if result >= bestResult[1]:
+                    bestResult = (newConfig, result)
+            else:
+                executionList.append((newConfig, executor.submit(HyperParametersTuner.__findAnswerForConfig, newConfig,
+                                                                 tracker, gtPredictors, maxFrames, withPartialOutput)))
 
-            # print("Found new running configuration!")
-            predictors = findTrackerPredictorsFromVideoList(tracker, newConfig, gtPredictors)
-            # print("Found predictors!")
-            evaluator = Evaluator(predictors, gtPredictors, maxFrames)
-            result = evaluator.evaluate(withPartialOutput)
-            del evaluator
-            del predictors
-            print(str(newConfig.getTrackingHyperParameters()), " ---> ", result)
-            if result >= bestResult[1]:
-                bestResult = (newConfig, result)
-
+        for result in executionList:
+            actualResult = result[1].result()
+            if actualResult >= bestResult[1]:
+                bestResult = (result[0], actualResult)
 
         return bestResult
 

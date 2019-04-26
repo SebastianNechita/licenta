@@ -3,7 +3,8 @@ import sys
 from pedect.controller.Controller import Controller
 from pedect.tracker.OpenCVTracker import OpenCVTracker
 from pedect.evaluator.HyperParametersTuner import *
-
+import random
+random.seed(1)
 
 sys.path.append("./keras-yolo3/") 
 sys.path.append("./re3-tensorflow/") 
@@ -16,9 +17,12 @@ class MyConfig(BasicConfig):
     noFreezeBatchSize = 32
     loadPretrained = False
     checkpointPeriod = 3
+
 MyConfig()
-tracker = OpenCVTracker("medianflow")
 config = getConfigFromTrainId(2)
+config.trackerType = "medianflow"
+print("Tracker type is", config.trackerType)
+tracker = OpenCVTracker(config.trackerType)
 controller = Controller(config, tracker)
 
 
@@ -30,4 +34,4 @@ mspRange = (0.0, 1.0)
 
 # videosList = [ ("caltech", "set03", "V000"), ("caltech" , "set01", "V005"), ("caltech", "set01", "V000")]
 videosList = [("caltech" , "set01", "V005")]
-controller.optimizeTrackerConfig(ctRange, rtRange, stRange, smpRange, mspRange, videosList, 100, 1000, False)
+controller.optimizeTrackerConfig(ctRange, rtRange, stRange, smpRange, mspRange, videosList, 100, 100, True)

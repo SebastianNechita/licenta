@@ -5,7 +5,7 @@ from pedect.predictor.VideoHolder import *
 
 
 class GroundTruthPredictor(Predictor, VideoHolder):
-    def startNewPrediction(self):
+    def finishPrediction(self):
         pass
 
     def __init__(self, chosenDataset, setName: str, videoNr: str):

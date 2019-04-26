@@ -12,6 +12,7 @@ from pedect.utils.osUtils import *
 
 class YOLOManager:
     existentYoloObjects = {}
+
     @staticmethod
     def getYoloObject(config):
         uniqueValue = (config.getModelPath(), config.getAnchorsPath())
@@ -24,13 +25,13 @@ class YOLOManager:
         return YOLOManager.existentYoloObjects[uniqueValue]
 
 class YoloPredictor(Predictor):
-    def startNewPrediction(self):
+    def finishPrediction(self):
         pass
 
     def __init__(self, videoHolder, config):
         self.videoHolder = videoHolder
         self.config = config
-        self.yoloObject = YOLOManager.getYoloObject(config)
+        self.yoloObject = None
         self.savePath = os.path.join(self.config.getPredictionsPath(), self.videoHolder.chosenDataset.datasetName,
                                      self.videoHolder.setName, self.videoHolder.videoNr)
 
@@ -58,23 +59,25 @@ class YoloPredictor(Predictor):
     def writePredictionBoxes(self, predictionPath, objects):
         createDirectoryIfNotExists(self.savePath)
         f = open(predictionPath, "w+")
-        for object in objects:
-            f.write("%d %d %d %d %f %s\n" % (object.getX1(),
-                                             object.getY1(),
-                                             object.getX2(),
-                                             object.getY2(),
-                                             object.getProb(),
-                                             object.getLabel()))
+        for obj in objects:
+            f.write("%d %d %d %d %f %s\n" % (obj.getX1(),
+                                             obj.getY1(),
+                                             obj.getX2(),
+                                             obj.getY2(),
+                                             obj.getProb(),
+                                             obj.getLabel()))
         f.close()
 
     def predictForFrame(self, frameNr: int):
         predictionPath = self.getPredictionPathForFrame(frameNr)
         if os.path.isfile(predictionPath):
             return self.readPredictionBoxes(predictionPath)
+        if self.yoloObject is None:
+            self.yoloObject = YOLOManager.getYoloObject(self.config)
         image = Image.fromarray(self.videoHolder.getFrame(frameNr), 'RGB')
         if self.yoloObject.model_image_size != (None, None):
-            assert self.yoloObject.model_image_size[0]%32 == 0, 'Multiples of 32 required'
-            assert self.yoloObject.model_image_size[1]%32 == 0, 'Multiples of 32 required'
+            assert self.yoloObject.model_image_size[0] % 32 == 0, 'Multiples of 32 required'
+            assert self.yoloObject.model_image_size[1] % 32 == 0, 'Multiples of 32 required'
             boxed_image = letterbox_image(image, tuple(reversed(self.yoloObject.model_image_size)))
         else:
             new_image_size = (image.width - (image.width % 32),

@@ -6,6 +6,9 @@ from pedect.tracker.Tracker import Tracker
 
 
 class OpenCVTracker(Tracker):
+    def parallelizable(self) -> bool:
+        return True
+
     OPENCV_OBJECT_TRACKERS = {
         "csrt": cv2.TrackerCSRT_create,
         "kcf": cv2.TrackerKCF_create,
@@ -24,11 +27,12 @@ class OpenCVTracker(Tracker):
         if bbox is not None:
             tr = self.OPENCV_OBJECT_TRACKERS[self.trackerType]()
             self.__trackers[uniqueId] = tr
-            return tr.init(image, bbox)
+            return tr.init(image, (bbox[0], bbox[1], bbox[2] - bbox[0], bbox[3] - bbox[1]))
         else:
-            return self.__trackers[uniqueId].update(image)[1]
+            box = self.__trackers[uniqueId].update(image)[1]
+            return box[0], box[1], box[2] + box[0], box[3] + box[1]
 
     def clearTracker(self):
-        print("Clearing " + str(len(self.__trackers)) + " trackers...")
+        print("\nClearing " + str(len(self.__trackers)) + " trackers...")
         del self.__trackers
         self.__trackers = {}

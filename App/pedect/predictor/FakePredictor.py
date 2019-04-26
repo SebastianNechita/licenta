@@ -4,7 +4,7 @@ from pedect.predictor.Predictor import Predictor
 
 
 class FakePredictor(Predictor):
-    def startNewPrediction(self):
+    def finishPrediction(self):
         pass
 
     # fakeProbRange = (0.0, 0.8)

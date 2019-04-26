@@ -55,6 +55,8 @@ class BasicConfig:
 
     batchSplit = (0.2, 0.1, 0.05, 0.65)
 
+    trackerType = "medianflow"
+
     def getModelPath(self):
         return os.path.join(MODELS_DIR, str(self.trainId), self.modelName)
 

@@ -15,6 +15,8 @@ import argparse
 import math
 
 import numpy as np
+import uuid
+
 
 class Evaluator:
     def __init__(self, predictors, groundTruthPredictors, maxFrames = MAX_VIDEO_LENGTH):
@@ -29,7 +31,10 @@ class Evaluator:
             return self.result
         s = random.getstate()
         random.seed(3)
-        basePath = os.path.join(os.getcwd())
+        uuidFolder = str(uuid.uuid4())
+        basePath = os.path.join(os.getcwd(), uuidFolder)
+        emptyDirectory(basePath)
+        os.chdir(uuidFolder)
         gtPath = os.path.join(basePath, 'ground-truth')
         predictedPath = os.path.join(basePath, 'predicted')
         emptyDirectory(predictedPath)
@@ -43,9 +48,6 @@ class Evaluator:
             rangeToIterate = range(min(groundTruthPredictor.getLength(), self.maxFrames))
             if verbose:
                 rangeToIterate = tqdm(rangeToIterate)
-            predictor.startNewPrediction()
-            if hasattr(predictor, 'tracker') and isinstance(predictor.tracker, Tracker):
-                predictor.tracker.clearTracker()
             for frameNr in rangeToIterate:
                 fileName = "%d-%d.txt" % (i, frameNr)
                 groundTruthObjects = groundTruthPredictor.predictForFrame(frameNr)
@@ -59,6 +61,13 @@ class Evaluator:
                 [f.write("%s %f %d %d %d %d\n" % (o.getLabel(), o.getProb(), o.getX1(), o.getY1(), o.getX2(), o.getY2()))
                  for o in predictedObjects]
                 f.close()
+            try:
+                times = list(predictor.predictor.times)
+                print("Predictor times slices are ", [(str((i / sum(times))) + "%") for i in list(times)])
+            except Exception:
+                pass
+            predictor.finishPrediction()  # frees the memory of the trackers
+
 
         args = A()
         args.quiet = True
@@ -69,6 +78,8 @@ class Evaluator:
         # self.result = float(result[5:-2])
         random.setstate(s)
         self.computed = True
+        os.chdir("..")
+        os.removedirs(uuidFolder)
         return self.result
 
 

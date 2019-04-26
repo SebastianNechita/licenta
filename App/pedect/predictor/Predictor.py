@@ -7,6 +7,6 @@ class Predictor:
         raise NotImplementedError
 
     @abstractmethod
-    def startNewPrediction(self):
+    def finishPrediction(self):
         raise NotImplementedError
 

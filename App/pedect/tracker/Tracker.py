@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from typing import Tuple
 
 
@@ -9,4 +10,8 @@ class Tracker:
 
     @NotImplementedError
     def clearTracker(self):
+        pass
+
+    @abstractmethod
+    def parallelizable(self) -> bool:
         pass

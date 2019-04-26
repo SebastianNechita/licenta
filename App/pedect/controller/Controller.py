@@ -51,7 +51,7 @@ class Controller:
                               withPartialOutput: bool = False) -> None:
         if videosList is None:
             videosList = self.splitIntoBatches()[2]
-        bestConfig, result = HyperParametersTuner.tryToFindBestConfig(self.config, self.tracker, videosList,
+        bestConfig, result = HyperParametersTuner.tryToFindBestConfig(self.config, videosList,
                                                                       noIterations,
                                                                       ctRange, rtRange, stRange, smpRange, mspRange,
                                                                       noFrames, withPartialOutput)
