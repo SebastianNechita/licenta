@@ -28,17 +28,19 @@ class TrackedObject:
         self.__frameCreated = frameCreated
 
 
-def refreshTrackedObjects(tracker, image, activeObjects):
+def refreshTrackedObjects(tracker, image, activeObjects: dict):
     imageRGB = image[:, :, ::-1]
-    toRun = []
-    if tracker.parallelizable():
-        for k, v in activeObjects.items():
-            toRun.append((k, executor.submit(tracker.track, k, imageRGB)))
-        for k, future in toRun:
-            activeObjects[k].setPos(future.result())
-    else:
-        for k, v in activeObjects.items():
-            activeObjects[k].setPos(tracker.track(k, imageRGB))
+    # toRun = []
+    # if tracker.parallelizable():
+    #     for k, v in activeObjects.items():
+    #         toRun.append((k, executor.submit(tracker.track, k, imageRGB)))
+    #     for k, future in toRun:
+    #         activeObjects[k].setPos(future.result())
+    # else:
+    newPositions = tracker.trackAll(activeObjects.keys(), imageRGB)
+    [activeObjects[k].setPos(v) for k, v in newPositions.items()]
+    # for k, v in activeObjects.items():
+    #     activeObjects[k].setPos(tracker.track(k, imageRGB))
     return activeObjects
 
 def positionBetween(b1: tuple, b2: tuple, percent: float) -> tuple:
@@ -75,7 +77,6 @@ def moveOrDestroyTrackedObjects(activeObjects, predictedBBoxes, surviveMovePerce
 
 def createAndDestroyTrackedObjects(tracker, image, activeObjects, predictedBBoxes, createThreshold, removeThreshold,
                                    frameNr, probabilitiesDictionary):
-    executionList = []
     newObjects = {}
     for predBox in predictedBBoxes:
         box = predBox.getPos()
@@ -87,14 +88,9 @@ def createAndDestroyTrackedObjects(tracker, image, activeObjects, predictedBBoxe
             activeObjects = {k: v for k, v in activeObjects.items() if IOU(v.getPos(), box) < removeThreshold}
             newObjects[newId] = TrackedObject(box, frameNr, predBox.getLabel())
             probabilitiesDictionary[newId] = prob
-            if tracker.parallelizable():
-                executionList.append(executor.submit(tracker.track, newId, image, box))
-            else:
-                tracker.track(newId, image, box)
+            tracker.track(newId, image, box)
     for k, v in newObjects.items():
         activeObjects[k] = v
-    for i in executionList:
-        i.result()
     return activeObjects
 
 def removeOldObjects(activeObjects, frameNr, maxAge):

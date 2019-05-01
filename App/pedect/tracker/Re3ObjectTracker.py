@@ -6,6 +6,7 @@ from pedect.tracker.Tracker import Tracker
 
 
 class Re3ObjectTracker(Tracker):
+
     def parallelizable(self) -> bool:
         return False
 

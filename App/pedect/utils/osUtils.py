@@ -4,7 +4,9 @@ import shutil
 
 def emptyDirectory(path: str):
     if os.path.exists(path):  # if it exist already
-        shutil.rmtree(path)
+        [os.remove(os.path.join(path, f)) for f in os.listdir(path)]
+        # shutil.rmtree(path)
+        os.rmdir(path)
     os.makedirs(path)
 
 

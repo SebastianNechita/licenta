@@ -48,13 +48,13 @@ class Controller:
     def optimizeTrackerConfig(self, ctRange: Tuple[float, float], rtRange: Tuple[float, float],
                               stRange: Tuple[float, float], smpRange: Tuple[float, float], mspRange: Tuple[float, float],
                               videosList: Sequence[Tuple[str, str, str]] = None, noIterations: int = 100, noFrames: int=30,
-                              withPartialOutput: bool = False) -> None:
+                              withPartialOutput: bool = False, rangeSize: int = None) -> None:
         if videosList is None:
             videosList = self.splitIntoBatches()[2]
         bestConfig, result = HyperParametersTuner.tryToFindBestConfig(self.config, videosList,
                                                                       noIterations,
                                                                       ctRange, rtRange, stRange, smpRange, mspRange,
-                                                                      noFrames, withPartialOutput)
+                                                                      noFrames, withPartialOutput, rangeSize)
         print("Found best config with MaP = %s:\n%s" % (result, str(bestConfig)))
         self.config = bestConfig
 

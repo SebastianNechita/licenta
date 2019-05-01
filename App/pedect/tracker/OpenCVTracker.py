@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Tuple, Sequence
 
 import cv2
 
@@ -33,6 +33,14 @@ class OpenCVTracker(Tracker):
             return box[0], box[1], box[2] + box[0], box[3] + box[1]
 
     def clearTracker(self):
-        print("\nClearing " + str(len(self.__trackers)) + " trackers...")
+        # print("\nClearing " + str(len(self.__trackers)) + " trackers...")
         del self.__trackers
         self.__trackers = {}
+
+    def trackAll(self, uniqueIds: Sequence[str], image) -> dict:
+        uidsSet = set(uniqueIds)
+        keys = [x for x in self.__trackers.keys()]
+        for key in keys:
+            if key not in uidsSet:
+                self.__trackers.pop(key)
+        return super().trackAll(uniqueIds, image)

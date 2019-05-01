@@ -23,29 +23,47 @@ class TrackerPredictor(Predictor):
         t0, t1, t2, t3, t4 = self.times
         image = self.groundTruthPredictor.getFrame(frameNr)  # predictor.getFrame(frameNr)
         start = time.time()
+        printd("Start A")
         self.activeObjects = refreshTrackedObjects(self.tracker, image, self.activeObjects)
+        printd("End A")
+
         t0 += time.time() - start
         start = time.time()
+        printd("Start B")
         predictedBBoxes = self.predictor.predictForFrame(frameNr)
+        printd("End B")
+
         t1 += time.time() - start
         start = time.time()
+        printd("Start C")
+
         self.activeObjects, probabilitiesDictionary = moveOrDestroyTrackedObjects(self.activeObjects, predictedBBoxes,
                                                                                   self.config.surviveMovePercent,
                                                                                   self.config.surviveThreshold,
                                                                                   self.config.maxNrOfObjectsPerFrame)
+        printd("End C")
+
         t2 += time.time() - start
         start = time.time()
+        printd("Start D")
+
         self.activeObjects = createAndDestroyTrackedObjects(self.tracker, image, self.activeObjects, predictedBBoxes,
                                                             self.config.createThreshold, self.config.removeThreshold,
                                                             frameNr, probabilitiesDictionary)
+        printd("End D")
+
         t3 += time.time() - start
         start = time.time()
+        printd("Start E")
+
         self.activeObjects = removeOldObjects(self.activeObjects, frameNr, self.config.maxAge)
+        printd("End E")
+
         t4 += time.time() - start
         # # # #
         # # # #
         # # # #
-        # # # # sa nu uiti sa mai faci o chestie aici -> aia cu sa se propage schimbarile zise de reteaua neuronala
+        # # # # TODO: sa nu uiti sa mai faci o chestie aici -> aia cu sa se propage schimbarile zise de reteaua neuronala
         # # # #
         # # # #
         # # # #
@@ -60,3 +78,7 @@ class TrackerPredictor(Predictor):
         self.groundTruthPredictor.finishPrediction()
 
 
+def printd(a):
+    DEBUG = False
+    if DEBUG:
+        print(a)

@@ -1,7 +1,5 @@
-import os
 import random
 
-from pedect.tracker.Tracker import Tracker
 from pedect.utils.constants import MAX_VIDEO_LENGTH
 from pedect.utils.osUtils import emptyDirectory
 from tqdm import tqdm
@@ -11,7 +9,6 @@ import os
 import shutil
 import operator
 import sys
-import argparse
 import math
 
 import numpy as np
@@ -36,61 +33,93 @@ class Evaluator:
         toIterate = zip(self.predictors, self.groundTruthPredictors)
         if verbose:
             toIterate = tqdm(toIterate)
-        bigAnswersList = []
-
+        # bigAnswersList = []
+        counter = 0
+        predictedDict = {}
+        gtDict = {}
         for predictor, groundTruthPredictor in toIterate:
             rangeToIterate = range(min(groundTruthPredictor.getLength(), self.maxFrames))
             if verbose:
                 rangeToIterate = tqdm(rangeToIterate)
-            answersList = []
+            # answersList = []
             for frameNr in rangeToIterate:
                 groundTruthObjects = groundTruthPredictor.predictForFrame(frameNr)
                 predictedObjects = predictor.predictForFrame(frameNr)
-                answersList.append((groundTruthObjects, predictedObjects))
+                gtDict[counter] = [(o.getLabel(), o.getX1(), o.getY1(), o.getX2(), o.getY2())
+                                   for o in groundTruthObjects]
+                predictedDict[counter] = [(o.getLabel(), o.getProb(), o.getX1(), o.getY1(), o.getX2(), o.getY2())
+                                          for o in predictedObjects]
+                counter = counter + 1
+                # answersList.append((groundTruthObjects, predictedObjects))
             try:
                 times = list(predictor.predictor.times)
-                print("Predictor times slices are ", [(str((i / sum(times))) + "%") for i in list(times)])
+                # print("Predictor times slices are ", [(str((i / sum(times))) + "%") for i in list(times)])
             except Exception:
                 pass
             predictor.finishPrediction()  # frees the memory of the trackers
-            bigAnswersList.append(answersList)
-        print("Here before mutex accuire!")
-        mainMutex.acquire()
-        print("Mutex accuired!")
-        basePath = os.path.join(os.getcwd())
-        gtPath = os.path.join(basePath, 'ground-truth')
-        predictedPath = os.path.join(basePath, 'predicted')
-        emptyDirectory(predictedPath)
-        emptyDirectory(gtPath)
-        i = 0
-        for answersList in bigAnswersList:
-            i = i + 1
-            frameNr = 0
-            for groundTruthObjects, predictedObjects in answersList:
-                fileName = "%d-%d.txt" % (i, frameNr)
-                frameNr = frameNr + 1
-                # predictedObjects = groundTruthPredictor.predictForFrame(frameNr)
-                f = open(os.path.join(gtPath, fileName), "a+")
-                [f.write("%s %d %d %d %d\n" % (o.getLabel(), o.getX1(), o.getY1(), o.getX2(), o.getY2()))
-                 for o in groundTruthObjects]
-                f.close()
-                f = open(os.path.join(predictedPath, fileName), "a+")
-                [f.write("%s %f %d %d %d %d\n" % (o.getLabel(), o.getProb(), o.getX1(), o.getY1(), o.getX2(), o.getY2()))
-                 for o in predictedObjects]
-                f.close()
+            # bigAnswersList.append(answersList)
+        # print("Here before mutex accuire!")
+        # mainMutex.acquire()
+        # print("Mutex accuired!")
+        # basePath = os.path.join(os.getcwd())
+        # gtPath = os.path.join(basePath, 'ground-truth')
+        # predictedPath = os.path.join(basePath, 'predicted')
+        # i = 0
+        # for i in range(10):
+        #     try:
+        #         emptyDirectory(predictedPath)
+        #         emptyDirectory(gtPath)
+        #     except Exception:
+        #         print("Small error..trying again", i/10)
+        # if i == 9:
+        #     emptyDirectory(predictedPath)
+        #     emptyDirectory(gtPath)
+        # i = 0
+        #
+        # for answersList in bigAnswersList:
+        #     i = i + 1
+        #     frameNr = 0
+        #     for groundTruthObjects, predictedObjects in answersList:
+        #         fileName = "%d-%d.txt" % (i, frameNr)
+        #         frameNr = frameNr + 1
+        #         # predictedObjects = groundTruthPredictor.predictForFrame(frameNr)
+        #         # f = open(os.path.join(gtPath, fileName), "a+")
+        #         gtDict[fileName] = [(o.getLabel(), o.getX1(), o.getY1(), o.getX2(), o.getY2())
+        #                                                          for o in groundTruthObjects]
+        #         # [f.write("%s %d %d %d %d\n" % (o.getLabel(), o.getX1(), o.getY1(), o.getX2(), o.getY2()))
+        #         #  for o in groundTruthObjects]
+        #
+        #         # f.close()
+        #         # f = open(os.path.join(predictedPath, fileName), "a+")
+        #         predictedDict[fileName] = [(o.getLabel(), o.getProb(), o.getX1(), o.getY1(), o.getX2(), o.getY2())
+        #                                    for o in predictedObjects]
+        #         # [f.write("%s %f %d %d %d %d\n" % (o.getLabel(), int(o.getProb() * 100) / 100.0, o.getX1(), o.getY1(), o.getX2(), o.getY2()))
+        #         #  for o in predictedObjects]
+        #         # f.close()
+        #
+        #
+        # args = A()
+        # args.quiet = True
+        # args.no_plot = True
+        self.result = findMaPModified(predictedDict, gtDict)
 
+        # if abs(findMaP(args) - self.result) > 1e-6:
+        #     print("Wrong calculated MAP\n\n\n\n\n\n\n\n---------------", self.result, findMaP(args), self.predictors[0].predictor.config, "------------------------\n--------------------\n\n")
+        #     sys.exit(0)
 
-        args = A()
-        args.quiet = True
-        args.no_plot = True
-        self.result = findMaP(args)
-        # command = 'python %s -q -np' % os.path.join("mAP", "main.py")
-        # result = os.popen(command).read()
-        # self.result = float(result[5:-2])
         random.setstate(s)
-        print("Here before mutex release!")
-        mainMutex.release()
-        print("Mutex released!")
+        # print("Here before mutex release!")
+        # for i in range(10):
+        #     try:
+        #         emptyDirectory(predictedPath)
+        #         emptyDirectory(gtPath)
+        #     except Exception:
+        #         print("Small error..trying again", i/10)
+        # if i == 9:
+        # emptyDirectory(predictedPath)
+        # emptyDirectory(gtPath)
+        # mainMutex.release()
+        # print("Mutex released!")
         self.computed = True
         return self.result
 
@@ -101,6 +130,251 @@ class A:
     no_animation = None
     no_plot = None
     quiet = None
+
+def findMaPModified(predictedDict, gtDict):
+    MINOVERLAP = 0.5  # default value (defined in the PASCAL VOC2012 challenge)
+
+
+    # def log_average_miss_rate(precision, fp_cumsum, num_images):
+    #     """
+    #         log-average miss rate:
+    #             Calculated by averaging miss rates at 9 evenly spaced FPPI points
+    #             between 10e-2 and 10e0, in log-space.
+    #
+    #         output:
+    #                 lamr | log-average miss rate
+    #                 mr | miss rate
+    #                 fppi | false positives per image
+    #
+    #         references:
+    #             [1] Dollar, Piotr, et al. "Pedestrian Detection: An Evaluation of the
+    #                State of the Art." Pattern Analysis and Machine Intelligence, IEEE
+    #                Transactions on 34.4 (2012): 743 - 761.
+    #     """
+    #
+    #     # if there were no detections of that class
+    #     if precision.size == 0:
+    #         lamr = 0
+    #         mr = 1
+    #         fppi = 0
+    #         return lamr, mr, fppi
+    #
+    #     fppi = fp_cumsum / float(num_images)
+    #     mr = (1 - precision)
+    #
+    #     fppi_tmp = np.insert(fppi, 0, -1.0)
+    #     mr_tmp = np.insert(mr, 0, 1.0)
+    #
+    #     # Use 9 evenly spaced reference points in log-space
+    #     ref = np.logspace(-2.0, 0.0, num=9)
+    #     for i, ref_i in enumerate(ref):
+    #         # np.where() will always find at least 1 index, since min(ref) = 0.01 and min(fppi_tmp) = -1.0
+    #         j = np.where(fppi_tmp <= ref_i)[-1][-1]
+    #         ref[i] = mr_tmp[j]
+    #
+    #     # log(0) is undefined, so we use the np.maximum(1e-10, ref)
+    #     lamr = math.exp(np.mean(np.log(np.maximum(1e-10, ref))))
+    #
+    #     return lamr, mr, fppi
+
+    """
+     Calculate the AP given the recall and precision array
+        1st) We compute a version of the measured precision/recall curve with
+             precision monotonically decreasing
+        2nd) We compute the AP as the area under this curve by numerical integration.
+    """
+
+    def voc_ap(rec, prec):
+        """
+        --- Official matlab code VOC2012---
+        mrec=[0 ; rec ; 1];
+        mpre=[0 ; prec ; 0];
+        for i=numel(mpre)-1:-1:1
+                mpre(i)=max(mpre(i),mpre(i+1));
+        end
+        i=find(mrec(2:end)~=mrec(1:end-1))+1;
+        ap=sum((mrec(i)-mrec(i-1)).*mpre(i));
+        """
+        rec.insert(0, 0.0)  # insert 0.0 at begining of list
+        rec.append(1.0)  # insert 1.0 at end of list
+        mrec = rec[:]
+        prec.insert(0, 0.0)  # insert 0.0 at begining of list
+        prec.append(0.0)  # insert 0.0 at end of list
+        mpre = prec[:]
+        """
+         This part makes the precision monotonically decreasing
+            (goes from the end to the beginning)
+            matlab: for i=numel(mpre)-1:-1:1
+                        mpre(i)=max(mpre(i),mpre(i+1));
+        """
+        # matlab indexes start in 1 but python in 0, so I have to do:
+        #     range(start=(len(mpre) - 2), end=0, step=-1)
+        # also the python function range excludes the end, resulting in:
+        #     range(start=(len(mpre) - 2), end=-1, step=-1)
+        for i in range(len(mpre) - 2, -1, -1):
+            mpre[i] = max(mpre[i], mpre[i + 1])
+        """
+         This part creates a list of indexes where the recall changes
+            matlab: i=find(mrec(2:end)~=mrec(1:end-1))+1;
+        """
+        i_list = []
+        for i in range(1, len(mrec)):
+            if mrec[i] != mrec[i - 1]:
+                i_list.append(i)  # if it was matlab would be i + 1
+        """
+         The Average Precision (AP) is the area under the curve
+            (numerical integration)
+            matlab: ap=sum((mrec(i)-mrec(i-1)).*mpre(i));
+        """
+        ap = 0.0
+        for i in i_list:
+            ap += ((mrec[i] - mrec[i - 1]) * mpre[i])
+        return ap, mrec, mpre
+
+    """
+     Ground-Truth
+         Load each of the ground-truth files into a temporary ".json" file.
+         Create a list of all the class names present in the ground-truth (gt_classes).
+    """
+    # dictionary with counter per class
+    gt_counter_per_class = {}
+    counter_images_per_class = {}
+
+    # ground_truth_files_list = glob.glob('ground-truth/*.txt')
+    # ground_truth_files_list.sort()
+    # ground_truth_files_list = [x.split("\\")[-1] for x in ground_truth_files_list]
+    ground_truth_files_list = gtDict.keys()
+    gtForFileId = {}
+    for txt_file in ground_truth_files_list:
+        file_id = txt_file
+        bounding_boxes = []
+        already_seen_classes = []
+        for line in gtDict[txt_file]:
+            class_name, left, top, right, bottom = line
+            bounding_boxes.append({"class_name": class_name, "bbox": (left, top, right, bottom), "used": False})
+            # count that object
+            if class_name in gt_counter_per_class:
+                gt_counter_per_class[class_name] += 1
+            else:
+                # if class didn't exist yet
+                gt_counter_per_class[class_name] = 1
+
+            if class_name not in already_seen_classes:
+                if class_name in counter_images_per_class:
+                    counter_images_per_class[class_name] += 1
+                else:
+                    # if class didn't exist yet
+                    counter_images_per_class[class_name] = 1
+                already_seen_classes.append(class_name)
+
+        gtForFileId[file_id] = bounding_boxes
+
+    gt_classes = list(gt_counter_per_class.keys())
+    # let's sort the classes alphabetically
+    gt_classes = sorted(gt_classes)
+    n_classes = len(gt_classes)
+
+    """
+     Predicted
+         Load each of the predicted files into a temporary ".json" file.
+    """
+    predictionsPerClass = {}
+    for class_index, class_name in enumerate(gt_classes):
+        bounding_boxes = []
+        for txt_file in ground_truth_files_list:
+            file_id = txt_file
+            for line in predictedDict[txt_file]:
+                tmp_class_name, confidence, left, top, right, bottom = line
+                if tmp_class_name == class_name:
+                    bounding_boxes.append({"confidence": confidence, "file_id": file_id, "bbox": (left, top, right, bottom)})
+        bounding_boxes.sort(key=lambda x: float(x['confidence']), reverse=True)
+        predictionsPerClass[class_name] = bounding_boxes
+
+    """
+     Calculate the AP for each class
+    """
+    sum_AP = 0.0
+    # ap_dictionary = {}
+    # open file to store the results
+    count_true_positives = {}
+    for class_index, class_name in enumerate(gt_classes):
+        count_true_positives[class_name] = 0
+        predictions_data = predictionsPerClass[class_name]
+        """
+         Assign predictions to ground truth objects
+        """
+        nd = len(predictions_data)
+        tp = [0] * nd  # creates an array of zeros of size nd
+        fp = [0] * nd
+        for idx, prediction in enumerate(predictions_data):
+            file_id = prediction["file_id"]
+            # assign prediction to ground truth object if any
+            # open ground-truth with that file_id
+            ground_truth_data = gtForFileId[file_id]
+            ovmax = -1
+            gt_match = -1
+            # load prediction bounding-box
+            bb = prediction["bbox"]
+            for obj in ground_truth_data:
+                # look for a class_name match
+                if obj["class_name"] == class_name:
+                    bbgt = obj["bbox"]
+                    bi = [max(bb[0], bbgt[0]), max(bb[1], bbgt[1]), min(bb[2], bbgt[2]), min(bb[3], bbgt[3])]
+                    iw = bi[2] - bi[0] + 1
+                    ih = bi[3] - bi[1] + 1
+                    if iw > 0 and ih > 0:
+                        # compute overlap (IoU) = area of intersection / area of union
+                        ua = (bb[2] - bb[0] + 1) * (bb[3] - bb[1] + 1) + (bbgt[2] - bbgt[0]
+                                                                          + 1) * (bbgt[3] - bbgt[1] + 1) - iw * ih
+                        ov = iw * ih / ua
+                        if ov > ovmax:
+                            ovmax = ov
+                            gt_match = obj
+
+            # set minimum overlap
+            min_overlap = MINOVERLAP
+            if ovmax >= min_overlap:
+                if "difficult" not in gt_match:
+                    if not bool(gt_match["used"]):
+                        # true positive
+                        tp[idx] = 1
+                        gt_match["used"] = True
+                        count_true_positives[class_name] += 1
+                    else:
+                        # false positive (multiple detection)
+                        fp[idx] = 1
+            else:
+                # false positive
+                fp[idx] = 1
+
+        cumsum = 0
+        for idx, val in enumerate(fp):
+            fp[idx] += cumsum
+            cumsum += val
+        cumsum = 0
+        for idx, val in enumerate(tp):
+            tp[idx] += cumsum
+            cumsum += val
+        rec = tp[:]
+        for idx, val in enumerate(tp):
+            rec[idx] = float(tp[idx]) / gt_counter_per_class[class_name]
+        prec = tp[:]
+        for idx, val in enumerate(tp):
+            prec[idx] = float(tp[idx]) / (fp[idx] + tp[idx])
+
+        ap, mrec, mprec = voc_ap(rec[:], prec[:])
+        sum_AP += ap
+        # ap_dictionary[class_name] = ap
+
+        # n_images = counter_images_per_class[class_name]
+        # lamr, mr, fppi = log_average_miss_rate(np.array(rec), np.array(fp), n_images)
+        # lamr_dictionary[class_name] = lamr
+
+    mAP = sum_AP / n_classes
+    result = mAP
+
+    return result
+
 
 def findMaP(args):
     result = -1
@@ -579,8 +853,9 @@ def findMaP(args):
              Load predictions of that class
             """
             predictions_file = TEMP_FILES_PATH + "/" + class_name + "_predictions.json"
-            predictions_data = json.load(open(predictions_file))
-
+            addedF = open(predictions_file)
+            predictions_data = json.load(addedF)
+            addedF.close()
             """
              Assign predictions to ground truth objects
             """
@@ -614,7 +889,9 @@ def findMaP(args):
                 # assign prediction to ground truth object if any
                 # open ground-truth with that file_id
                 gt_file = TEMP_FILES_PATH + "/" + file_id + "_ground_truth.json"
-                ground_truth_data = json.load(open(gt_file))
+                addedF2 = open(gt_file)
+                ground_truth_data = json.load(addedF2)
+                addedF2.close()
                 ovmax = -1
                 gt_match = -1
                 # load prediction bounding-box
