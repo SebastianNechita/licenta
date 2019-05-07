@@ -1,10 +1,8 @@
 import os
 import time
 
-from PIL import Image
 from scipy.io import loadmat
 from collections import defaultdict
-import pims
 import struct
 from matplotlib import animation
 from tqdm import tqdm_notebook
