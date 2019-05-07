@@ -1,3 +1,4 @@
+from time import time
 from typing import Sequence
 
 import numpy as np
@@ -5,7 +6,7 @@ import keras.backend as K
 from keras.layers import Input, Lambda
 from keras.models import Model
 from keras.optimizers import Adam
-from keras.callbacks import TensorBoard, ModelCheckpoint, ReduceLROnPlateau, EarlyStopping
+from keras.callbacks import TensorBoard, ModelCheckpoint, ReduceLROnPlateau, EarlyStopping, LearningRateScheduler
 
 from yolo3.model import preprocess_true_boxes, yolo_body, tiny_yolo_body, yolo_loss
 from yolo3.utils import get_random_data
@@ -71,7 +72,7 @@ class YoloTrainer(Trainer):
         checkpoint = ModelCheckpoint(os.path.join(models_dir, 'ep{epoch:03d}-loss{loss:.3f}-val_loss{val_loss:.3f}.h5'),
                                      monitor='val_loss', save_weights_only=True, save_best_only=True,
                                      period=config.checkpointPeriod)
-        reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=3, verbose=1)
+        reduce_lr = ReduceLROnPlateau(monitor='loss', factor=0.3, patience=5, verbose=1)
         early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=10, verbose=1)
 
         val_split = config.validationSplit
@@ -93,6 +94,7 @@ class YoloTrainer(Trainer):
             batch_size = config.freezeBatchSize
             print('Train on {} samples, val on {} samples, with batch size {}.'.format(num_train, num_val,
                                                                                        batch_size))
+            tensorboard = TensorBoard(log_dir=os.path.join(MODELS_DIR, str(config.trainId), "logs/{}".format(time())))
             model.fit_generator(
                 data_generator_wrapper(lines[:num_train], batch_size, input_shape, anchors, num_classes),
                 steps_per_epoch=max(1, num_train // batch_size),
@@ -101,7 +103,7 @@ class YoloTrainer(Trainer):
                 validation_steps=max(1, num_val // batch_size),
                 epochs=freezeNoEpochs,
                 initial_epoch=0,
-                callbacks=[checkpoint])
+                callbacks=[checkpoint, tensorboard])
         #         model.save_weights(log_dir + 'trained_weights_stage_1.h5')
 
         # Unfreeze and continue training, to fine-tune.
@@ -111,13 +113,28 @@ class YoloTrainer(Trainer):
 
             for i in range(len(model.layers)):
                 model.layers[i].trainable = True
-            model.compile(optimizer=Adam(lr=1e-4),
+            model.compile(optimizer=Adam(lr=config.initialLR),
                           loss={'yolo_loss': lambda y_true, y_pred: y_pred})  # recompile to apply the change
             print('Unfreeze all of the layers.')
 
             batch_size = config.noFreezeBatchSize  # note that more GPU memory is required after unfreezing the body
             print('Train on {} samples, val on {} samples, with batch size {}.'.format(num_train, num_val,
                                                                                        batch_size))
+            tensorboard = TensorBoard(log_dir=os.path.join(MODELS_DIR, str(config.trainId), "logs/{}".format(time())))
+
+            def step_decay_schedule(initial_lr=1e-4, decay_factor=0.75, step_size=10):
+                '''
+                Wrapper function to create a LearningRateScheduler with step decay schedule.
+                '''
+
+                def schedule(epoch):
+                    lr = initial_lr
+                    return lr * (decay_factor ** np.floor(epoch / step_size))
+
+                return LearningRateScheduler(schedule)
+
+            # lr_sched = step_decay_schedule(initial_lr=config.initialLR, decay_factor=config.LRDecayMagnitude, step_size=config.LRDecayPeriod)
+
             model.fit_generator(
                 data_generator_wrapper(lines[:num_train], batch_size, input_shape, anchors, num_classes),
                 steps_per_epoch=max(1, num_train // batch_size),
@@ -126,7 +143,7 @@ class YoloTrainer(Trainer):
                 validation_steps=max(1, num_val // batch_size),
                 epochs=freezeNoEpochs + noFreezeNoEpochs,
                 initial_epoch=freezeNoEpochs,
-                callbacks=[checkpoint, reduce_lr, early_stopping])
+                callbacks=[checkpoint, tensorboard, reduce_lr])
         model.save_weights(config.getModelPath())
         # Further training if needed.
         print("Finished training!")

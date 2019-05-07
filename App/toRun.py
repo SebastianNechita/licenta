@@ -7,7 +7,7 @@ sys.path.append("./keras-yolo3/")
 sys.path.append("./re3-tensorflow/") 
 print(sys.path)
 
-from pedect.controller.Controller import Controller
+from pedect.service.Service import Service
 
 class MyConfig(BasicConfig):
     trainId = "5"
@@ -18,7 +18,7 @@ class MyConfig(BasicConfig):
     checkpointPeriod = 3
 config = MyConfig()
 
-controller = Controller(config)
+controller = Service(config)
 
-# controller.prepareTrainingSet()
+# service.prepareTrainingSet()
 controller.train()

@@ -73,6 +73,7 @@ class HyperParametersTuner:
             thrNo = thrNo + 1
         for i, result in tqdm(enumerate(executionList)):
             executionList[i] = result[0], result[1].result()
+
         executionList.sort(key=lambda x: (x[1]), reverse=True)
         executionList = executionList[:min(len(executionList), 100)]
         [print(str(config.getTrackingHyperParameters()), " ---> ", result) for config, result in executionList]

@@ -40,6 +40,10 @@ class BasicConfig:
     noFreezeBatchSize = 16
     loadPretrained = True
     checkpointPeriod = 150
+    initialLR = 1e-4
+    LRDecayPeriod = 3
+    LRDecayMagnitude = 0.9
+
     # For tracking
     createThreshold = 0.9
     removeThreshold = 0.5

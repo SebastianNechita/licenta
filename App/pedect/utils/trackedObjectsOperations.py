@@ -57,7 +57,7 @@ def moveOrDestroyTrackedObjects(activeObjects, predictedBBoxes, surviveMovePerce
         survivingObjects = {}
         accurateList = []
         for activeId, v in activeObjects.items():
-            intersections = [math.sqrt(IOU(v.getPos(), predBox.getPos()) * predBox.getProb()) if v.getLabel() == predBox.getLabel() else 0
+            intersections = [IOU(v.getPos(), predBox.getPos()) * predBox.getProb() if v.getLabel() == predBox.getLabel() else 0
                              for predBox in predictedBBoxes]
             maxValue = max(intersections)
             bestPos = intersections.index(maxValue)
@@ -85,7 +85,8 @@ def createAndDestroyTrackedObjects(tracker, image, activeObjects, predictedBBoxe
         # print(createThreshold, removeThreshold, frameNr)
         if prob >= createThreshold:
             newId = IdGenerator.getStringId()
-            activeObjects = {k: v for k, v in activeObjects.items() if IOU(v.getPos(), box) < removeThreshold}
+            activeObjects = {k: v for k, v in activeObjects.items()
+                             if IOU(v.getPos(), box) <= removeThreshold or v.getLabel() != predBox.getLabel()}
             newObjects[newId] = TrackedObject(box, frameNr, predBox.getLabel())
             probabilitiesDictionary[newId] = prob
             tracker.track(newId, image, box)

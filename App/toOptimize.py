@@ -1,6 +1,6 @@
 from pedect.config.BasicConfig import *
 import sys
-from pedect.controller.Controller import Controller
+from pedect.service.Service import Service
 from pedect.tracker.OpenCVTracker import OpenCVTracker
 from pedect.evaluator.HyperParametersTuner import *
 import random
@@ -24,7 +24,7 @@ config.trackerType = "fake"
 # config.trackerType = "medianflow"
 print("Tracker type is", config.trackerType)
 tracker = OpenCVTracker(config.trackerType)
-controller = Controller(config, tracker)
+controller = Service(config, tracker)
 
 
 ctRange = (0.0, 0.0)

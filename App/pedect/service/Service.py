@@ -17,7 +17,7 @@ from pedect.trainer.YoloTrainer import YoloTrainer
 from pedect.utils.constants import MAX_VIDEO_LENGTH, ANNOTATIONS_FILE, DATA_DIR
 from pedect.utils.demo import playVideo
 
-class Controller:
+class Service:
     def __init__(self, config: BasicConfig, tracker: Tracker) -> None:
         self.config = config
         self.imgSaveTextPattern = "%s-%s-%s-%s.jpg"
@@ -120,5 +120,5 @@ class Controller:
             result[j].append(sets[i])
         return result[0], result[1], result[2], result[3]
 
-    # a, b, c, d = controller.splitIntoBatches()
+    # a, b, c, d = service.splitIntoBatches()
 
