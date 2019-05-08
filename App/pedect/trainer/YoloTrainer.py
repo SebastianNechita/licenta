@@ -56,7 +56,7 @@ class YoloTrainer(Trainer):
         anchors = get_anchors(anchors_path)
 
         input_shape = config.inputShape
-
+        tensorboard = TensorBoard(log_dir=os.path.join(MODELS_DIR, str(config.trainId), "logs/{}".format(time())))
         if is_tiny_version:
             model = create_tiny_model(input_shape, anchors, num_classes,
                                       load_pretrained=config.loadPretrained,
@@ -72,7 +72,7 @@ class YoloTrainer(Trainer):
         checkpoint = ModelCheckpoint(os.path.join(models_dir, 'ep{epoch:03d}-loss{loss:.3f}-val_loss{val_loss:.3f}.h5'),
                                      monitor='val_loss', save_weights_only=True, save_best_only=True,
                                      period=config.checkpointPeriod)
-        reduce_lr = ReduceLROnPlateau(monitor='loss', factor=0.3, patience=5, verbose=1)
+        reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=3, verbose=1)
         early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=10, verbose=1)
 
         val_split = config.validationSplit
@@ -94,7 +94,7 @@ class YoloTrainer(Trainer):
             batch_size = config.freezeBatchSize
             print('Train on {} samples, val on {} samples, with batch size {}.'.format(num_train, num_val,
                                                                                        batch_size))
-            tensorboard = TensorBoard(log_dir=os.path.join(MODELS_DIR, str(config.trainId), "logs/{}".format(time())))
+            
             model.fit_generator(
                 data_generator_wrapper(lines[:num_train], batch_size, input_shape, anchors, num_classes),
                 steps_per_epoch=max(1, num_train // batch_size),
@@ -120,20 +120,6 @@ class YoloTrainer(Trainer):
             batch_size = config.noFreezeBatchSize  # note that more GPU memory is required after unfreezing the body
             print('Train on {} samples, val on {} samples, with batch size {}.'.format(num_train, num_val,
                                                                                        batch_size))
-            tensorboard = TensorBoard(log_dir=os.path.join(MODELS_DIR, str(config.trainId), "logs/{}".format(time())))
-
-            def step_decay_schedule(initial_lr=1e-4, decay_factor=0.75, step_size=10):
-                '''
-                Wrapper function to create a LearningRateScheduler with step decay schedule.
-                '''
-
-                def schedule(epoch):
-                    lr = initial_lr
-                    return lr * (decay_factor ** np.floor(epoch / step_size))
-
-                return LearningRateScheduler(schedule)
-
-            # lr_sched = step_decay_schedule(initial_lr=config.initialLR, decay_factor=config.LRDecayMagnitude, step_size=config.LRDecayPeriod)
 
             model.fit_generator(
                 data_generator_wrapper(lines[:num_train], batch_size, input_shape, anchors, num_classes),
@@ -143,7 +129,7 @@ class YoloTrainer(Trainer):
                 validation_steps=max(1, num_val // batch_size),
                 epochs=freezeNoEpochs + noFreezeNoEpochs,
                 initial_epoch=freezeNoEpochs,
-                callbacks=[checkpoint, tensorboard, reduce_lr])
+                callbacks=[checkpoint, tensorboard, reduce_lr, early_stopping])
         model.save_weights(config.getModelPath())
         # Further training if needed.
         print("Finished training!")
