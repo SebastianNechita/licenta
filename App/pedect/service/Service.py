@@ -46,6 +46,7 @@ class Service:
                               withPartialOutput: bool = False, rangeSize: int = None) -> None:
         if videosList is None:
             videosList = self.splitIntoBatches()[2]
+        print("Working on ", videosList)
         bestConfig, result = HyperParametersTuner.tryToFindBestConfig(self.config, videosList,
                                                                       noIterations,
                                                                       ctRange, rtRange, stRange, smpRange, mspRange,

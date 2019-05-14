@@ -14,6 +14,14 @@ from yolo3.utils import get_random_data
 from pedect.trainer.Trainer import Trainer
 from pedect.utils.constants import *
 
+class LRTensorBoard(TensorBoard):
+    def __init__(self, log_dir):  # add other arguments to __init__ if you need
+        super().__init__(log_dir=log_dir)
+
+    def on_epoch_end(self, epoch, logs=None):
+        logs.update({'lr': K.eval(self.model.optimizer.lr)})
+        super().on_epoch_end(epoch, logs)
+
 
 class YoloTrainer(Trainer):
     def __init__(self, config, annotationFiles: Sequence[str]=None):
@@ -56,7 +64,7 @@ class YoloTrainer(Trainer):
         anchors = get_anchors(anchors_path)
 
         input_shape = config.inputShape
-        tensorboard = TensorBoard(log_dir=os.path.join(MODELS_DIR, str(config.trainId), "logs/{}".format(time())))
+        tensorboard = LRTensorBoard(log_dir=os.path.join(MODELS_DIR, str(config.trainId), "logs/{}".format(config.trainId)))
         preTrainedModelPath = config.preTrainedModelPath
         if preTrainedModelPath == "default":
             preTrainedModelPath = 'tiny_yolo_weights.h5' if is_tiny_version else 'yolo_weights.h5'
