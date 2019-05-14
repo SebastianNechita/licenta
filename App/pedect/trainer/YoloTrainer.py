@@ -37,7 +37,7 @@ class YoloTrainer(Trainer):
     def train(self) -> None:
         config = self.config
         print(config)
-        freezeNoEpochs = config.freezeNoEpochs if config.loadPretrained else 0
+        freezeNoEpochs = config.freezeNoEpochs if config.loadPreTrained else 0
         noFreezeNoEpochs = config.noFreezeNoEpochs
         is_tiny_version = config.isTiny  # default setting
 
@@ -47,8 +47,8 @@ class YoloTrainer(Trainer):
         models_dir = os.path.join(MODELS_DIR, config.trainId)
         if not os.path.exists(models_dir):
             os.makedirs(models_dir)
-        config.save(os.path.join(models_dir, "config.pickle"))
-        config.saveText(os.path.join(models_dir, "config.txt"))
+        config.save()
+        config.saveText()
         classes_path = LABELS_FILE
         anchors_path = config.getAnchorsPath()
         class_names = get_classes(classes_path)
@@ -57,16 +57,24 @@ class YoloTrainer(Trainer):
 
         input_shape = config.inputShape
         tensorboard = TensorBoard(log_dir=os.path.join(MODELS_DIR, str(config.trainId), "logs/{}".format(time())))
-        if is_tiny_version:
-            model = create_tiny_model(input_shape, anchors, num_classes,
-                                      load_pretrained=config.loadPretrained,
-                                      freeze_body=2,
-                                      weights_path=os.path.join(YOLO_DIR, 'model_data', 'tiny_yolo_weights.h5'))
-        else:
-            model = create_model(input_shape, anchors, num_classes,
-                                 load_pretrained=config.loadPretrained,
-                                 freeze_body=2, weights_path=os.path.join(YOLO_DIR, 'model_data',
-                                                                          'yolo_weights.h5'))  # make sure you know what you freeze
+        preTrainedModelPath = config.preTrainedModelPath
+        if preTrainedModelPath == "default":
+            preTrainedModelPath = 'tiny_yolo_weights.h5' if is_tiny_version else 'yolo_weights.h5'
+            preTrainedModelPath = os.path.join(YOLO_DIR, 'model_data', preTrainedModelPath)
+        createTheModel = create_tiny_model if is_tiny_version else create_model
+        model = createTheModel(input_shape, anchors, num_classes, load_pretrained=config.loadPreTrained, freeze_body=2,
+                               weights_path=preTrainedModelPath)
+        # if is_tiny_version:
+        #     model = create_tiny_model(input_shape, anchors, num_classes,
+        #                               load_pretrained=config.loadPretrained,
+        #                               freeze_body=2,
+        #                               weights_path=os.path.join(YOLO_DIR, 'model_data', pretrainedModelName))
+        # else:
+        #     model = create_model(input_shape, anchors, num_classes,
+        #                          load_pretrained=config.loadPretrained,
+        #                          freeze_body=2, weights_path=os.path.join(YOLO_DIR, 'model_data',
+        #                                                                   pretrainedModelName))
+        # make sure you know what you freeze
 
         # logging = TensorBoard(log_dir=models_dir)
         checkpoint = ModelCheckpoint(os.path.join(models_dir, 'ep{epoch:03d}-loss{loss:.3f}-val_loss{val_loss:.3f}.h5'),
@@ -101,8 +109,8 @@ class YoloTrainer(Trainer):
                 validation_data=data_generator_wrapper(lines[num_train:], batch_size, input_shape, anchors,
                                                        num_classes),
                 validation_steps=max(1, num_val // batch_size),
-                epochs=freezeNoEpochs,
-                initial_epoch=0,
+                epochs=freezeNoEpochs + config.alreadyTrainedEpochs,
+                initial_epoch=config.alreadyTrainedEpochs,
                 callbacks=[checkpoint, tensorboard])
         #         model.save_weights(log_dir + 'trained_weights_stage_1.h5')
 
@@ -127,10 +135,15 @@ class YoloTrainer(Trainer):
                 validation_data=data_generator_wrapper(lines[num_train:], batch_size, input_shape, anchors,
                                                        num_classes),
                 validation_steps=max(1, num_val // batch_size),
-                epochs=freezeNoEpochs + noFreezeNoEpochs,
-                initial_epoch=freezeNoEpochs,
+                epochs=freezeNoEpochs + noFreezeNoEpochs + config.alreadyTrainedEpochs,
+                initial_epoch=freezeNoEpochs + config.alreadyTrainedEpochs,
                 callbacks=[checkpoint, tensorboard, reduce_lr, early_stopping])
         model.save_weights(config.getModelPath())
+        config.alreadyTrainedEpochs += freezeNoEpochs + noFreezeNoEpochs
+        config.preTrainedModelPath = config.getModelPath()
+        config.loadPreTrained = True
+        config.save()
+        config.saveText()
         # Further training if needed.
         print("Finished training!")
 

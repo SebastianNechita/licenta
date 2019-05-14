@@ -14,7 +14,7 @@ class MyConfig(BasicConfig):
     inputShape = (int(480 / 32 // 2 * 32), int(640 / 32 // 2 * 32))
     noFreezeNoEpochs = 30
     noFreezeBatchSize = 16
-    loadPretrained = False
+    loadPreTrained = False
     checkpointPeriod = 3
 config = MyConfig()
 

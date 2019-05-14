@@ -1,33 +1,28 @@
-import os
-from typing import Sequence, Tuple
+from typing import *
 
-from tqdm import tqdm
-
-from pedect.config.BasicConfig import BasicConfig
 from pedect.converter.ConverterToImages import ConverterToImagesYoloV3
-from pedect.evaluator.Evaluator import Evaluator
-from pedect.evaluator.HyperParametersTuner import HyperParametersTuner, findGroundTruthFromVideoList, \
-    findTrackerPredictorsFromVideoList
+from pedect.evaluator.HyperParametersTuner import *
 from pedect.generator.NewDataGenerator import NewDataGenerator
 from pedect.predictor.GroundTruthPredictor import GroundTruthPredictor
 from pedect.predictor.TrackerPredictor import TrackerPredictor
 from pedect.predictor.YoloPredictor import YoloPredictor
-from pedect.tracker.Tracker import Tracker
+from pedect.tracker.trackerHelper import getTrackerFromConfig
 from pedect.trainer.YoloTrainer import YoloTrainer
-from pedect.utils.constants import MAX_VIDEO_LENGTH, ANNOTATIONS_FILE, DATA_DIR
+from pedect.utils.constants import *
 from pedect.utils.demo import playVideo
 
 class Service:
-    def __init__(self, config: BasicConfig, tracker: Tracker) -> None:
+    def __init__(self, config: BasicConfig) -> None:
         self.config = config
         self.imgSaveTextPattern = "%s-%s-%s-%s.jpg"
-        self.tracker = tracker
+        self.tracker = getTrackerFromConfig(config)
         self.trainer = YoloTrainer(config)
         self.converter = ConverterToImagesYoloV3(self.imgSaveTextPattern)
 
     def prepareTrainingSet(self, trainingList: Sequence[Tuple[str, str, str]] = None) -> None:
         if trainingList is None:
             trainingList = self.splitIntoBatches()[0]
+        print("Training list is ", trainingList)
         self.converter.clearDirectory()
         for video in trainingList:
             self.converter.saveImagesFromGroundTruth(video[0], video[1], video[2])
@@ -103,7 +98,7 @@ class Service:
             videos = sorted(os.listdir(os.path.join(datasetPath, videoSet)))
             for videoName in videos:
                 result.append((datasetName, str(videoSet), str(videoName.split(".seq")[0])))
-        return result
+        return sorted(list(set(result)))
 
     def splitIntoBatches(self) -> Tuple[Sequence[Tuple[str, str, str]], Sequence[Tuple[str, str, str]],
                                         Sequence[Tuple[str, str, str]], Sequence[Tuple[str, str, str]]]:
@@ -120,5 +115,4 @@ class Service:
             result[j].append(sets[i])
         return result[0], result[1], result[2], result[3]
 
-    # a, b, c, d = service.splitIntoBatches()
 

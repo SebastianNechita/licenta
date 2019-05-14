@@ -1,12 +1,7 @@
-# import tensorflow as tf
-# print(tf.__file__)
-
-# tf.reset_default_graph()
-
-from pedect.config.BasicConfig import *
 import sys
+
+from pedect.config.BasicConfig import getSavedConfigIfExists
 from pedect.service.Service import Service
-from pedect.tracker.OpenCVTracker import OpenCVTracker
 from pedect.evaluator.HyperParametersTuner import *
 import random
 random.seed(1)
@@ -14,24 +9,25 @@ random.seed(1)
 sys.path.append("./keras-yolo3/")
 sys.path.append("./re3-tensorflow/")
 
-divisionRate = 2
+divisionRate = 4
 
 class MyConfig(BasicConfig):
-    trainId = "11"
+    trainId = "12"
     inputShape = (int(480 / 32 // divisionRate * 32), int(640 / 32 // divisionRate * 32))
-    noFreezeNoEpochs = 50
-    freezeNoEpochs = 50
+    freezeNoEpochs = 1
+    noFreezeNoEpochs = 1
     freezeBatchSize = 32
     noFreezeBatchSize = 32
-    loadPretrained = True
+    loadPreTrained = True
     checkpointPeriod = 5
-    trackerType = "fake"
     isTiny = True
 
-config = MyConfig()
+config = getSavedConfigIfExists(MyConfig())
+config.freezeNoEpochs = 0
+config.noFreezeNoEpochs = 3
+
 print("Input shape: ", config.inputShape)
-tracker = OpenCVTracker(config.trackerType)
-service = Service(config, tracker)
+service = Service(config)
 
 # service.prepareTrainingSet()
 config.initialLR = 1e-4

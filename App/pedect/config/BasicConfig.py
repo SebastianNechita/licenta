@@ -4,13 +4,17 @@ from pedect.utils.constants import *
 
 
 class BasicConfig:
-    def save(self, configFile):
+    def save(self, configFile = None):
+        if configFile is None:
+            configFile = os.path.join(MODELS_DIR, self.trainId, "config.pickle")
         self.updateDictionary()
         f = open(configFile, 'wb+')
         pickle.dump(self, f)
         f.close()
 
-    def saveText(self, configFile):
+    def saveText(self, configFile=None):
+        if configFile is None:
+            configFile = os.path.join(MODELS_DIR, self.trainId, "config.txt")
         f = open(configFile, 'w+')
         f.write(str(self))
         f.close()
@@ -38,11 +42,11 @@ class BasicConfig:
     validationSplit = 0.1
     freezeBatchSize = 16
     noFreezeBatchSize = 16
-    loadPretrained = True
+    loadPreTrained = True
+    preTrainedModelPath = "default"
     checkpointPeriod = 150
     initialLR = 1e-4
-    LRDecayPeriod = 3
-    LRDecayMagnitude = 0.9
+    alreadyTrainedEpochs = 0
 
     # For tracking
     createThreshold = 0.9
@@ -92,12 +96,19 @@ class BasicConfig:
 
 
 def getConfig(fileName = ""):
-    if fileName == "":
-        return BasicConfig()
-    f = open(fileName, "rb")
-    result = pickle.load(f)
-    f.close()
-    return result
+    try:
+        f = open(fileName, "rb")
+        result = pickle.load(f)
+        f.close()
+        return result
+    except IOError:
+        return None
 
 def getConfigFromTrainId(trainId):
     return getConfig(os.path.join(MODELS_DIR, str(trainId), "config.pickle"))
+
+def getSavedConfigIfExists(config: BasicConfig):
+    saved = getConfigFromTrainId(config.trainId)
+    if saved is not None:
+        return saved
+    return config

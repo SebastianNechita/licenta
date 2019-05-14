@@ -14,7 +14,6 @@ from pedect.tracker.Tracker import Tracker
 from pedect.tracker.trackerHelper import getTrackerFromConfig
 from pedect.utils.constants import MAX_VIDEO_LENGTH
 import time
-import pedect.utils.parallel
 from pedect.utils.parallel import executor
 
 

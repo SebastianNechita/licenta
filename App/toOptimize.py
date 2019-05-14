@@ -14,7 +14,7 @@ class MyConfig(BasicConfig):
     inputShape = (int(480 / 32 // 2 * 32), int(640 / 32 // 2 * 32))
     noFreezeNoEpochs = 5
     noFreezeBatchSize = 32
-    loadPretrained = False
+    loadPreTrained = False
     checkpointPeriod = 3
 
 MyConfig()
@@ -23,8 +23,7 @@ config.trackerType = "csrt"
 config.trackerType = "fake"
 # config.trackerType = "medianflow"
 print("Tracker type is", config.trackerType)
-tracker = OpenCVTracker(config.trackerType)
-controller = Service(config, tracker)
+service = Service(config)
 
 
 ctRange = (0.0, 0.0)
@@ -42,4 +41,6 @@ videosList = [("caltech", "set01", "V004")]
 # videosList = None
 rangeSize = 11
 howMany = 1
-controller.optimizeTrackerConfig(ctRange, rtRange, stRange, smpRange, mspRange, videosList, rangeSize ** howMany, 50, True, rangeSize)
+config.batchSplit = (0.19, 0.11, 0.05, 0.65)
+print(service.splitIntoBatches()[0])
+# service.optimizeTrackerConfig(ctRange, rtRange, stRange, smpRange, mspRange, videosList, rangeSize ** howMany, 50, True, rangeSize)
