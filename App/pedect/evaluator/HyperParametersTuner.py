@@ -121,9 +121,10 @@ class GridHPGenerator(HPGenerator):
                             e1 = self.__updateToRange(e, ranges[4])
                             configTry = (a1, b1, c1, d1, e1)
                             initialTries.append(configTry)
-                            print(configTry)
+                            # print(configTry)
 
 
+        print(len(initialTries))
         super().__init__(initialTries, ranges)
 
 
