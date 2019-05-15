@@ -1,5 +1,6 @@
 import numpy as np
 from PIL import Image
+from constants import USE_GLOBAL_PREDICTION_CACHE
 from yolo import YOLO
 from yolo3.utils import letterbox_image
 from keras import backend as K
@@ -12,7 +13,7 @@ from pedect.utils.osUtils import *
 
 class YOLOManager:
     existentYoloObjects = {}
-
+    __cache = {}
     @staticmethod
     def getYoloObject(config):
         uniqueValue = (config.getModelPath(), config.getAnchorsPath())
@@ -24,6 +25,10 @@ class YOLOManager:
                                                                 score = 0.05)
         return YOLOManager.existentYoloObjects[uniqueValue]
 
+    @staticmethod
+    def getGlobalCache():
+        return YOLOManager.__cache
+
 class YoloPredictor(Predictor):
     def finishPrediction(self):
         pass
@@ -34,7 +39,7 @@ class YoloPredictor(Predictor):
         self.yoloObject = None
         self.savePath = os.path.join(self.config.getPredictionsPath(), self.videoHolder.chosenDataset.datasetName,
                                      self.videoHolder.setName, self.videoHolder.videoNr)
-        self.cache = {}
+        self.cache = YOLOManager.getGlobalCache() if USE_GLOBAL_PREDICTION_CACHE else {}
 
     def getPredictionPathForFrame(self, frameNr):
         return os.path.join(self.savePath, str(frameNr) + ".prediction")
@@ -74,7 +79,9 @@ class YoloPredictor(Predictor):
         if predictionPath in self.cache:
             return self.cache[predictionPath]
         if os.path.isfile(predictionPath):
-            return self.readPredictionBoxes(predictionPath)
+            objects = self.readPredictionBoxes(predictionPath)
+            self.cache[predictionPath] = objects
+            return objects
         if self.yoloObject is None:
             self.yoloObject = YOLOManager.getYoloObject(self.config)
         image = Image.fromarray(self.videoHolder.getFrame(frameNr), 'RGB')
