@@ -34,6 +34,7 @@ class YoloPredictor(Predictor):
         self.yoloObject = None
         self.savePath = os.path.join(self.config.getPredictionsPath(), self.videoHolder.chosenDataset.datasetName,
                                      self.videoHolder.setName, self.videoHolder.videoNr)
+        self.cache = {}
 
     def getPredictionPathForFrame(self, frameNr):
         return os.path.join(self.savePath, str(frameNr) + ".prediction")
@@ -70,6 +71,8 @@ class YoloPredictor(Predictor):
 
     def predictForFrame(self, frameNr: int):
         predictionPath = self.getPredictionPathForFrame(frameNr)
+        if predictionPath in self.cache:
+            return self.cache[predictionPath]
         if os.path.isfile(predictionPath):
             return self.readPredictionBoxes(predictionPath)
         if self.yoloObject is None:
@@ -108,4 +111,5 @@ class YoloPredictor(Predictor):
             objects.append(PredictedBox(int(left), int(top), int(right), int(bottom), predicted_class, float(score)))
 
         self.writePredictionBoxes(predictionPath, objects)
+        self.cache[predictionPath] = objects
         return objects
