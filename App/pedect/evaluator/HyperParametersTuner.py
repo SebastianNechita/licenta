@@ -96,7 +96,7 @@ class HPGenerator:
 class GridHPGenerator(HPGenerator):
 
     def __updateToRange(self, number, rng):
-        return rng[0] + (rng[1] - rng[0]) * number
+        return int(100 * (rng[0] + (rng[1] - rng[0]) * number)) / 100.0
 
     def __init__(self, ranges, gridSize):
         assert gridSize > 1
