@@ -124,7 +124,6 @@ class GridHPGenerator(HPGenerator):
                             print(configTry)
 
 
-        print(len(initialTries))
         super().__init__(initialTries, ranges)
 
 
