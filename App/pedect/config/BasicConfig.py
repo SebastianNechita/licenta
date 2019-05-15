@@ -74,7 +74,7 @@ class BasicConfig:
         return os.path.join(YOLO_DIR, 'model_data', 'yolo_anchors.txt')
 
     def getPredictionsPath(self):
-        return os.path.join(PREDICTIONS_PATH, str(self.trainId))
+        return os.path.join(PREDICTIONS_PATH, str(self.trainId) + "-" + str(self.alreadyTrainedEpochs))
 
     def configName(self):
         return "BasicConfig"
