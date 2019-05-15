@@ -17,3 +17,5 @@ MAX_WORKERS = 8  # for parallelization
 
 
 IMAGES_READING_VERBOSE = True
+
+USE_GLOBAL_PREDICTION_CACHE = True # increases ram usage
