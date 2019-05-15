@@ -44,6 +44,7 @@ class YoloPredictor(Predictor):
         return os.path.join(self.savePath, str(frameNr) + ".prediction")
 
     def readPredictionBoxes(self, predictionPath):
+        print("Reading smth...")
         noTries = 10
         for i in range(noTries):
             try:
