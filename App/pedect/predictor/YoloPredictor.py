@@ -1,6 +1,5 @@
 import numpy as np
 from PIL import Image
-from constants import USE_GLOBAL_PREDICTION_CACHE
 from yolo import YOLO
 from yolo3.utils import letterbox_image
 from keras import backend as K
