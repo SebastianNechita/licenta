@@ -10,6 +10,7 @@ from pedect.tracker.trackerHelper import getTrackerFromConfig
 from pedect.trainer.YoloTrainer import YoloTrainer
 from pedect.utils.constants import *
 from pedect.utils.demo import playVideo
+from pedect.tracker.trackerHelper import TimesHolder as TH
 
 class Service:
     def __init__(self, config: BasicConfig) -> None:
@@ -115,5 +116,11 @@ class Service:
                 j = j + 1
             result[j].append(sets[i])
         return result[0], result[1], result[2], result[3]
+
+    @staticmethod
+    def getRunningTimesPercentForTracker():
+        times = list(TH.getTimes())
+        stimes = sum(times)
+        return [int(100 * x / stimes) / 100 for x in times]
 
 

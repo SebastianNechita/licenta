@@ -51,11 +51,7 @@ class Evaluator:
                                           for o in predictedObjects]
                 counter = counter + 1
                 # answersList.append((groundTruthObjects, predictedObjects))
-            try:
-                times = list(predictor.predictor.times)
-                # print("Predictor times slices are ", [(str((i / sum(times))) + "%") for i in list(times)])
-            except Exception:
-                pass
+
             predictor.finishPrediction()  # frees the memory of the trackers
             # bigAnswersList.append(answersList)
         # print("Here before mutex accuire!")

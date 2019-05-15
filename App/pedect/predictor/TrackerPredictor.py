@@ -1,12 +1,14 @@
 import time
 
+from constants import LOG_DIR
+
 from pedect.config.BasicConfig import BasicConfig
 from pedect.predictor.GroundTruthPredictor import GroundTruthPredictor
 from pedect.predictor.Predictor import Predictor
 from pedect.predictor.PredictedBox import PredictedBox
 from pedect.tracker.Tracker import Tracker
 from pedect.utils.trackedObjectsOperations import *
-
+from pedect.tracker.trackerHelper import TimesHolder as TH
 
 class TrackerPredictor(Predictor):
 
@@ -17,23 +19,21 @@ class TrackerPredictor(Predictor):
         self.tracker = tracker
         self.config = config
         self.activeObjects = {}
-        self.times = (0, 0, 0, 0, 0)
 
     def predictForFrame(self, frameNr: int):
-        t0, t1, t2, t3, t4 = self.times
         image = self.groundTruthPredictor.getFrame(frameNr)  # predictor.getFrame(frameNr)
         start = time.time()
         printd("Start A")
         self.activeObjects = refreshTrackedObjects(self.tracker, image, self.activeObjects)
         printd("End A")
 
-        t0 += time.time() - start
+        TH.time0 += time.time() - start
         start = time.time()
         printd("Start B")
         predictedBBoxes = self.predictor.predictForFrame(frameNr)
         printd("End B")
 
-        t1 += time.time() - start
+        TH.time1 += time.time() - start
         start = time.time()
         printd("Start C")
 
@@ -43,7 +43,7 @@ class TrackerPredictor(Predictor):
                                                                                   self.config.maxNrOfObjectsPerFrame)
         printd("End C")
 
-        t2 += time.time() - start
+        TH.time2 += time.time() - start
         start = time.time()
         printd("Start D")
 
@@ -52,14 +52,14 @@ class TrackerPredictor(Predictor):
                                                             frameNr, probabilitiesDictionary)
         printd("End D")
 
-        t3 += time.time() - start
+        TH.time3 += time.time() - start
         start = time.time()
         printd("Start E")
 
         self.activeObjects = removeOldObjects(self.activeObjects, frameNr, self.config.maxAge)
         printd("End E")
 
-        t4 += time.time() - start
+        TH.time4 += time.time() - start
         # # # #
         # # # #
         # # # #
@@ -67,7 +67,6 @@ class TrackerPredictor(Predictor):
         # # # #
         # # # #
         # # # #
-        self.times = (t0, t1, t2, t3, t4)
         return [PredictedBox(int(v.getPos()[0] + 0.5), int(v.getPos()[1] + 0.5), int(v.getPos()[2] + 0.5),
                              int(v.getPos()[3] + 0.5), v.getLabel(), probabilitiesDictionary[k])
                 for k, v in self.activeObjects.items()]
