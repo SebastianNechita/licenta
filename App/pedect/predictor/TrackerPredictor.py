@@ -1,7 +1,5 @@
 import time
 
-from constants import LOG_DIR
-
 from pedect.config.BasicConfig import BasicConfig
 from pedect.predictor.GroundTruthPredictor import GroundTruthPredictor
 from pedect.predictor.Predictor import Predictor
