@@ -12,7 +12,7 @@ sys.path.append("./re3-tensorflow/")
 divisionRate = 4
 
 class MyConfig(BasicConfig):
-    trainId = "12"
+    trainId = "11"
     inputShape = (int(480 / 32 // divisionRate * 32), int(640 / 32 // divisionRate * 32))
     freezeNoEpochs = 1
     noFreezeNoEpochs = 1
@@ -23,14 +23,19 @@ class MyConfig(BasicConfig):
     isTiny = True
 
 config = getSavedConfigIfExists(MyConfig())
-config.freezeNoEpochs = 0
-config.noFreezeNoEpochs = 3
-
-print("Input shape: ", config.inputShape)
+config.noFreezeNoEpochs = 38
+# config.freezeNoEpochs = 0
+# config.noFreezeNoEpochs = 1
+# config.initialLR = 1e-5
+# config.alreadyTrainedEpochs = 100
+# config.preTrainedModelPath = config.getModelPath()
+# config.batchSplit = (0.19, 0.11, 0.05, 0.65)
+# config.save()
+# config.saveText()
+# print("Input shape: ", config.inputShape)
 service = Service(config)
-
+# print(config)
 # service.prepareTrainingSet()
-config.initialLR = 1e-4
 service.train()
 
 # divRate = 1, isTiny = True -> batchSize = 32 ---- 2min

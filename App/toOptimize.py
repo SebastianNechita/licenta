@@ -14,7 +14,7 @@ class MyConfig(BasicConfig):
 
 MyConfig()
 config = getConfigFromTrainId(11)
-# config.trackerType = "csrt"
+config.trackerType = "csrt"
 config.trackerType = "fake"
 # config.trackerType = "medianflow"
 print("Tracker type is", config.trackerType)
@@ -34,7 +34,7 @@ for i in ranges:
 # videosList = [ ("caltech", "set03", "V000"), ("caltech" , "set01", "V005"), ("caltech", "set01", "V000")]
 # videosList = [("caltech", "set01", "V004")]
 videosList = None
-rangeSize = 2
+rangeSize = 3
 
-service.optimizeTrackerConfig(ctRange, rtRange, stRange, smpRange, mspRange, videosList, rangeSize ** howMany, 300, False, rangeSize)
-print([("%f\%" % x) for x in service.getRunningTimesPercentForTracker()])
+service.optimizeTrackerConfig(ctRange, rtRange, stRange, smpRange, mspRange, videosList, rangeSize ** howMany, 300, True, rangeSize)
+print([("%.2f%%" % x) for x in service.getRunningTimesPercentForTracker()])
