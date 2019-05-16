@@ -16,7 +16,11 @@ MyConfig()
 config = getConfigFromTrainId(11)
 config.trackerType = "csrt"
 config.trackerType = "fake"
-# config.trackerType = "medianflow"
+config.trackerType = "kcf"
+config.trackerType = "medianflow"
+config.trackerType = "boosting"
+# config.trackerType = "mil"
+# config.trackerType = "mosse"
 print("Tracker type is", config.trackerType)
 service = Service(config)
 
