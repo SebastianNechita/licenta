@@ -1,10 +1,14 @@
+from typing import Sequence
+
 import numpy as np
 from PIL import Image
 from yolo import YOLO
 from yolo3.utils import letterbox_image
 from keras import backend as K
 
+from pedect.config.BasicConfig import BasicConfig
 from pedect.predictor.Predictor import Predictor
+from pedect.predictor.VideoHolder import VideoHolder
 from pedect.utils.constants import *
 
 from pedect.predictor.PredictedBox import PredictedBox
@@ -13,8 +17,9 @@ from pedect.utils.osUtils import *
 class YOLOManager:
     existentYoloObjects = {}
     __cache = {}
+
     @staticmethod
-    def getYoloObject(config):
+    def getYoloObject(config: BasicConfig):
         uniqueValue = (config.getModelPath(), config.getAnchorsPath())
         if uniqueValue not in YOLOManager.existentYoloObjects:
             print("Created a new YOLO object!")
@@ -28,11 +33,11 @@ class YOLOManager:
     def getGlobalCache():
         return YOLOManager.__cache
 
-class YoloPredictor(Predictor):
-    def finishPrediction(self):
-        pass
+class YOLOPredictor(Predictor):
+    # def finishPrediction(self):
+    #     pass
 
-    def __init__(self, videoHolder, config):
+    def __init__(self, videoHolder: VideoHolder, config: BasicConfig):
         self.videoHolder = videoHolder
         self.config = config
         self.yoloObject = None
@@ -40,10 +45,10 @@ class YoloPredictor(Predictor):
                                      self.videoHolder.setName, self.videoHolder.videoNr)
         self.cache = YOLOManager.getGlobalCache() if USE_GLOBAL_PREDICTION_CACHE else {}
 
-    def getPredictionPathForFrame(self, frameNr):
+    def getPredictionPathForFrame(self, frameNr: int):
         return os.path.join(self.savePath, str(frameNr) + ".prediction")
 
-    def readPredictionBoxes(self, predictionPath):
+    def readPredictionBoxes(self, predictionPath: str):
         noTries = 10
         for i in range(noTries):
             try:
@@ -61,7 +66,7 @@ class YoloPredictor(Predictor):
                     print("Small input error %d / %d. Trying again!" % (i, noTries))
                 raise e
 
-    def writePredictionBoxes(self, predictionPath, objects):
+    def writePredictionBoxes(self, predictionPath: str, objects: Sequence[PredictedBox]):
         createDirectoryIfNotExists(self.savePath)
         f = open(predictionPath, "w+")
         for obj in objects:

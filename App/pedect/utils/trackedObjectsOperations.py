@@ -1,4 +1,5 @@
 import math
+from typing import Tuple
 
 from pedect.utils.IdGenerator import IdGenerator
 from pedect.utils.metrics import IOU
@@ -6,29 +7,29 @@ from pedect.utils.parallel import executor
 
 
 class TrackedObject:
-    def __init__(self, pos, frameCreated, label):
+    def __init__(self, pos: Tuple[int, int, int, int], frameCreated: int, label: str):
         self.__pos, self.__frameCreated, self.__label = pos, frameCreated, label
 
-    def getPos(self):
+    def getPos(self) -> Tuple[int, int, int, int]:
         return self.__pos
 
-    def getLabel(self):
+    def getLabel(self) -> str:
         return self.__label
 
-    def getFrameCreated(self):
+    def getFrameCreated(self) -> int:
         return self.__frameCreated
 
-    def setPos(self, pos):
+    def setPos(self, pos: Tuple[int, int, int, int]):
         self.__pos = pos
 
-    def setLabel(self, label):
+    def setLabel(self, label: str):
         self.__label = label
 
-    def setFrameCreated(self, frameCreated):
+    def setFrameCreated(self, frameCreated: int):
         self.__frameCreated = frameCreated
 
 
-def refreshTrackedObjects(tracker, image, activeObjects: dict):
+def refreshTrackedObjects(tracker, image, activeObjects: dict, imageHash = None):
     imageRGB = image[:, :, ::-1]
     # toRun = []
     # if tracker.parallelizable():
@@ -37,7 +38,7 @@ def refreshTrackedObjects(tracker, image, activeObjects: dict):
     #     for k, future in toRun:
     #         activeObjects[k].setPos(future.result())
     # else:
-    newPositions = tracker.trackAll(activeObjects.keys(), imageRGB)
+    newPositions = tracker.trackAll(activeObjects.keys(), imageRGB, imageHash)
     [activeObjects[k].setPos(v) for k, v in newPositions.items()]
     # for k, v in activeObjects.items():
     #     activeObjects[k].setPos(tracker.track(k, imageRGB))
@@ -56,7 +57,8 @@ def moveOrDestroyTrackedObjects(activeObjects, predictedBBoxes, surviveMovePerce
     else:
         survivingObjects = {}
         accurateList = []
-        for activeId, v in activeObjects.items():
+        for activeId, v in sorted(activeObjects.items(), key=lambda ob: int(ob[0])):
+            # print(activeId, v)
             intersections = [IOU(v.getPos(), predBox.getPos()) * predBox.getProb() if v.getLabel() == predBox.getLabel() else 0
                              for predBox in predictedBBoxes]
             maxValue = max(intersections)
@@ -76,7 +78,7 @@ def moveOrDestroyTrackedObjects(activeObjects, predictedBBoxes, surviveMovePerce
 
 
 def createAndDestroyTrackedObjects(tracker, image, activeObjects, predictedBBoxes, createThreshold, removeThreshold,
-                                   frameNr, probabilitiesDictionary):
+                                   frameNr, probabilitiesDictionary, imageHash):
     newObjects = {}
     for predBox in predictedBBoxes:
         box = predBox.getPos()
@@ -85,11 +87,11 @@ def createAndDestroyTrackedObjects(tracker, image, activeObjects, predictedBBoxe
         # print(createThreshold, removeThreshold, frameNr)
         if prob >= createThreshold:
             newId = IdGenerator.getStringId()
-            activeObjects = {k: v for k, v in activeObjects.items()
+            activeObjects = {k: v for k, v in sorted(activeObjects.items(), key=lambda ob: int(ob[0]))
                              if IOU(v.getPos(), box) <= removeThreshold or v.getLabel() != predBox.getLabel()}
             newObjects[newId] = TrackedObject(box, frameNr, predBox.getLabel())
             probabilitiesDictionary[newId] = prob
-            tracker.track(newId, image, box)
+            tracker.track(newId, image, box, imageHash)
     for k, v in newObjects.items():
         activeObjects[k] = v
     return activeObjects

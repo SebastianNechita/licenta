@@ -1,9 +1,5 @@
 
 class PredictedBox:
-    __x1, __y1, __x2, __y2 = 0, 0, 0, 0
-    __label = ""
-    __prob = 0.0
-
     def __init__(self, x1: int, y1: int, x2: int, y2: int, label: str, prob: float):
         assert isinstance(x1, int)
         assert isinstance(y1, int)
@@ -36,22 +32,22 @@ class PredictedBox:
     def getProb(self):
         return self.__prob
 
-    def setX1(self, x1):
+    def setX1(self, x1: int):
         self.__x1 = x1
 
-    def setY1(self, y1):
+    def setY1(self, y1: int):
         self.__y1 = y1
 
-    def setX2(self, x2):
+    def setX2(self, x2: int):
         self.__x2 = x2
 
-    def setY2(self, y2):
+    def setY2(self, y2: int):
         self.__y2 = y2
 
-    def setLabel(self, label):
+    def setLabel(self, label: str):
         self.__label = label
 
-    def setProb(self, prob):
+    def setProb(self, prob: float):
         self.__prob = prob
 
     def __str__(self):

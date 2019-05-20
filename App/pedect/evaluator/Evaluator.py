@@ -1,7 +1,9 @@
 import random
+from typing import Sequence
 
+from pedect.predictor.GroundTruthPredictor import GroundTruthPredictor
+from pedect.predictor.Predictor import Predictor
 from pedect.utils.constants import MAX_VIDEO_LENGTH
-from pedect.utils.osUtils import emptyDirectory
 from tqdm import tqdm
 import glob
 import json
@@ -13,18 +15,32 @@ import math
 
 import numpy as np
 
-from pedect.utils.parallel import mainMutex
-
-
 class Evaluator:
-    def __init__(self, predictors, groundTruthPredictors, maxFrames = MAX_VIDEO_LENGTH):
+    def __init__(self, predictors: Sequence[Predictor], groundTruthPredictors: Sequence[GroundTruthPredictor], maxFrames: int = MAX_VIDEO_LENGTH):
         self.predictors = predictors
         self.groundTruthPredictors = groundTruthPredictors
         self.maxFrames = maxFrames
         self.computed = False
         self.result = 0
+        self.predictedDict = {}
+        self.gtDict = {}
+        self.counter = 0
 
-    def evaluate(self, verbose = False):
+    def addEvaluation(self, predictor, groundTruthPredictor, verbose):
+        rangeToIterate = range(min(groundTruthPredictor.getLength(), self.maxFrames))
+        if verbose:
+            rangeToIterate = tqdm(rangeToIterate)
+        # answersList = []
+        for frameNr in rangeToIterate:
+            groundTruthObjects = groundTruthPredictor.predictForFrame(frameNr)
+            predictedObjects = predictor.predictForFrame(frameNr)
+            self.gtDict[self.counter] = [(o.getLabel(), o.getX1(), o.getY1(), o.getX2(), o.getY2())
+                               for o in groundTruthObjects]
+            self.predictedDict[self.counter] = [(o.getLabel(), o.getProb(), o.getX1(), o.getY1(), o.getX2(), o.getY2())
+                                      for o in predictedObjects]
+            self.counter = self.counter + 1
+
+    def evaluate(self, verbose: bool = False):
         if self.computed:
             return self.result
         s = random.getstate()
@@ -50,72 +66,9 @@ class Evaluator:
                 predictedDict[counter] = [(o.getLabel(), o.getProb(), o.getX1(), o.getY1(), o.getX2(), o.getY2())
                                           for o in predictedObjects]
                 counter = counter + 1
-                # answersList.append((groundTruthObjects, predictedObjects))
 
-            predictor.finishPrediction()  # frees the memory of the trackers
-            # bigAnswersList.append(answersList)
-        # print("Here before mutex accuire!")
-        # mainMutex.acquire()
-        # print("Mutex accuired!")
-        # basePath = os.path.join(os.getcwd())
-        # gtPath = os.path.join(basePath, 'ground-truth')
-        # predictedPath = os.path.join(basePath, 'predicted')
-        # i = 0
-        # for i in range(10):
-        #     try:
-        #         emptyDirectory(predictedPath)
-        #         emptyDirectory(gtPath)
-        #     except Exception:
-        #         print("Small error..trying again", i/10)
-        # if i == 9:
-        #     emptyDirectory(predictedPath)
-        #     emptyDirectory(gtPath)
-        # i = 0
-        #
-        # for answersList in bigAnswersList:
-        #     i = i + 1
-        #     frameNr = 0
-        #     for groundTruthObjects, predictedObjects in answersList:
-        #         fileName = "%d-%d.txt" % (i, frameNr)
-        #         frameNr = frameNr + 1
-        #         # predictedObjects = groundTruthPredictor.predictForFrame(frameNr)
-        #         # f = open(os.path.join(gtPath, fileName), "a+")
-        #         gtDict[fileName] = [(o.getLabel(), o.getX1(), o.getY1(), o.getX2(), o.getY2())
-        #                                                          for o in groundTruthObjects]
-        #         # [f.write("%s %d %d %d %d\n" % (o.getLabel(), o.getX1(), o.getY1(), o.getX2(), o.getY2()))
-        #         #  for o in groundTruthObjects]
-        #
-        #         # f.close()
-        #         # f = open(os.path.join(predictedPath, fileName), "a+")
-        #         predictedDict[fileName] = [(o.getLabel(), o.getProb(), o.getX1(), o.getY1(), o.getX2(), o.getY2())
-        #                                    for o in predictedObjects]
-        #         # [f.write("%s %f %d %d %d %d\n" % (o.getLabel(), int(o.getProb() * 100) / 100.0, o.getX1(), o.getY1(), o.getX2(), o.getY2()))
-        #         #  for o in predictedObjects]
-        #         # f.close()
-        #
-        #
-        # args = A()
-        # args.quiet = True
-        # args.no_plot = True
         self.result = findMaPModified(predictedDict, gtDict)
-
-        # if abs(findMaP(args) - self.result) > 1e-6:
-        #     print("Wrong calculated MAP\n\n\n\n\n\n\n\n---------------", self.result, findMaP(args), self.predictors[0].predictor.config, "------------------------\n--------------------\n\n")
-        #     sys.exit(0)
-
         random.setstate(s)
-        # print("Here before mutex release!")
-        # for i in range(10):
-        #     try:
-        #         emptyDirectory(predictedPath)
-        #         emptyDirectory(gtPath)
-        #     except Exception:
-        #         print("Small error..trying again", i/10)
-        # if i == 9:
-        # emptyDirectory(predictedPath)
-        # emptyDirectory(gtPath)
-        # mainMutex.release()
-        # print("Mutex released!")
         self.computed = True
         return self.result
 

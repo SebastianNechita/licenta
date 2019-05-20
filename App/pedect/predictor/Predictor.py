@@ -6,7 +6,7 @@ class Predictor:
     def predictForFrame(self, frameNr: int):
         raise NotImplementedError
 
-    @abstractmethod
-    def finishPrediction(self):
-        raise NotImplementedError
+    # @abstractmethod
+    # def finishPrediction(self):
+    #     raise NotImplementedError
 

@@ -1,28 +1,29 @@
 import time
 
 from pedect.config.BasicConfig import BasicConfig
-from pedect.predictor.GroundTruthPredictor import GroundTruthPredictor
 from pedect.predictor.Predictor import Predictor
 from pedect.predictor.PredictedBox import PredictedBox
+from pedect.predictor.VideoHolder import VideoHolder
 from pedect.tracker.Tracker import Tracker
 from pedect.utils.trackedObjectsOperations import *
-from pedect.tracker.trackerHelper import TimesHolder as TH
+from pedect.tracker.TimesHolder import TimesHolder as TH
 
 class TrackerPredictor(Predictor):
 
-    def __init__(self, normalPredictor: Predictor, groundTruthPredictor: GroundTruthPredictor, tracker: Tracker,
-                 config: BasicConfig):
-        self.predictor = normalPredictor
-        self.groundTruthPredictor = groundTruthPredictor
+    def __init__(self, predictor: Predictor, videoHolder: VideoHolder, tracker: Tracker, config: BasicConfig):
+        self.predictor = predictor
+        self.videoHolder = videoHolder
         self.tracker = tracker
         self.config = config
         self.activeObjects = {}
 
     def predictForFrame(self, frameNr: int):
-        image = self.groundTruthPredictor.getFrame(frameNr)  # predictor.getFrame(frameNr)
+        image = self.videoHolder.getFrame(frameNr)  # predictor.getFrame(frameNr)
         start = time.time()
         printd("Start A")
-        self.activeObjects = refreshTrackedObjects(self.tracker, image, self.activeObjects)
+        imageHash = hash("%s-%s-%s-%s" % (self.videoHolder.chosenDataset, self.videoHolder.setName,
+                                  self.videoHolder.videoNr, frameNr))
+        self.activeObjects = refreshTrackedObjects(self.tracker, image, self.activeObjects, imageHash)
         printd("End A")
 
         TH.time0 += time.time() - start
@@ -47,7 +48,8 @@ class TrackerPredictor(Predictor):
 
         self.activeObjects = createAndDestroyTrackedObjects(self.tracker, image, self.activeObjects, predictedBBoxes,
                                                             self.config.createThreshold, self.config.removeThreshold,
-                                                            frameNr, probabilitiesDictionary)
+                                                            frameNr, probabilitiesDictionary, imageHash)
+        # print(probabilitiesDictionary)
         printd("End D")
 
         TH.time3 += time.time() - start
@@ -58,21 +60,14 @@ class TrackerPredictor(Predictor):
         printd("End E")
 
         TH.time4 += time.time() - start
-        # # # #
-        # # # #
-        # # # #
-        # # # # TODO: sa nu uiti sa mai faci o chestie aici -> aia cu sa se propage schimbarile zise de reteaua neuronala
-        # # # #
-        # # # #
-        # # # #
         return [PredictedBox(int(v.getPos()[0] + 0.5), int(v.getPos()[1] + 0.5), int(v.getPos()[2] + 0.5),
                              int(v.getPos()[3] + 0.5), v.getLabel(), probabilitiesDictionary[k])
                 for k, v in self.activeObjects.items()]
 
-    def finishPrediction(self):
-        self.predictor.finishPrediction()
-        self.tracker.clearTracker()
-        self.groundTruthPredictor.finishPrediction()
+    # def finishPrediction(self):
+    #     self.predictor.finishPrediction()
+    #     self.tracker.clearTracker()
+    #     self.activeObjects = {}
 
 
 def printd(a):

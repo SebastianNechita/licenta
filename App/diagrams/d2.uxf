@@ -1,0 +1,369 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="14.3.0">
+  <zoom_level>8</zoom_level>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>592</x>
+      <y>128</y>
+      <w>384</w>
+      <h>112</h>
+    </coordinates>
+    <panel_attributes>Tracker
+--
++trackerType: str
+--
++__init__(self)
+/+track(self, uniqueId: str, image, bbox: Tuple[int, int, int, int], imageHash: int)/
+/+parallelizable(self)/
++trackAll(self, uniqueIds: Sequence[str], image, imageHash: int)
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>344</x>
+      <y>344</y>
+      <w>384</w>
+      <h>88</h>
+    </coordinates>
+    <panel_attributes>FakeTracker
+--
+-__trackers: dict
+--
++__init__(self)
++track(self, uniqueId: str, image, bbox: Tuple[int, int, int, int], imageHash: int)
++parallelizable(self)</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>344</x>
+      <y>456</y>
+      <w>392</w>
+      <h>96</h>
+    </coordinates>
+    <panel_attributes>Re3ObjectTracker
+--
+-__tracker: Re3Tracker
+--
++__init__(self)
++track(self, uniqueId: str, image, bbox: Tuple[int, int, int, int], imageHash: int)
++parallelizable(self)
+_+getTracker()_</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>816</x>
+      <y>328</y>
+      <w>392</w>
+      <h>152</h>
+    </coordinates>
+    <panel_attributes>OpenCVTracker
+--
+-__trackers: dict
+_OPENCV_OBJECT_TRACKERS: dict_
+--
++__init__(self, trackerType)
++track(self, uniqueId: str, image, bbox: Tuple[int, int, int, int], imageHash: int)
++parallelizable(self)
++trackAll(self, uniqueIds: Sequence[str], image, imageHash: int)</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>816</x>
+      <y>496</y>
+      <w>392</w>
+      <h>128</h>
+    </coordinates>
+    <panel_attributes>CachingTracker
+--
++hashToAnswer: dict
++idsToHash: dict
++tracker: Tracker
+--
++__init__(self, trackerType)
+-__imageHash(image)
++track(self, uniqueId: str, image, bbox: Tuple[int, int, int, int], imageHash: int)
++parallelizable(self)</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>736</x>
+      <y>864</y>
+      <w>248</w>
+      <h>56</h>
+    </coordinates>
+    <panel_attributes>CachingTrackerManager
+--
++trackersConfigurations: dict
+--
++getConfigurationForTracker(trackerType: str)</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>768</x>
+      <y>232</y>
+      <w>272</w>
+      <h>280</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;310.0;320.0;330.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>768</x>
+      <y>232</y>
+      <w>160</w>
+      <h>112</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;80.0;180.0;120.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>536</x>
+      <y>232</y>
+      <w>256</w>
+      <h>240</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>300.0;10.0;300.0;250.0;10.0;280.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>416</x>
+      <y>232</y>
+      <w>376</w>
+      <h>128</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>450.0;10.0;450.0;80.0;10.0;140.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>352</x>
+      <y>1120</y>
+      <w>536</w>
+      <h>120</h>
+    </coordinates>
+    <panel_attributes>NewDataGenerator
+--
++predictor: Predictor
++textPattern: str
++videoHolder: VideoHolder
+--
++__init__(self, predictor: Predictor, videoHolder: VideoHolder, textPattern: str)
++generateNewData(self, selectPeriod: int, saveFolder: str, saveFileName: str, verbose: bool, frameNr: int)
+_+initializeDirectory(saveFolder: str)_</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>688</x>
+      <y>752</y>
+      <w>80</w>
+      <h>64</h>
+    </coordinates>
+    <panel_attributes>IdGenerator
+--
+-__theId: int
+--
++getStringId()</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>792</x>
+      <y>648</y>
+      <w>416</w>
+      <h>136</h>
+    </coordinates>
+    <panel_attributes>ConverterToImagesYOLOv3
+--
++uId: int
++csvSet: set
++textPattern: str
++possibleLabels: dict
+--
++__init__(self, textPattern: str)
++clearDirectory(self)
++saveImagesFromGroundTruth(self, datasetName: str, setName: str, videoNr: str)
++writeAnnotationsFile(self)</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>352</x>
+      <y>960</y>
+      <w>624</w>
+      <h>128</h>
+    </coordinates>
+    <panel_attributes>Evaluator
+--
++predictors: Sequence[Predictor]
++groundTruthPredictors: Sequence[GroundTruthPredictor]
++result: float
++maxFrames: int
++computed: bool
+--
++__init__(self, predictors: Sequence[Predictor], groundTruthPredictors: Sequence[GroundTruthPredictor], maxFrames: int)
++evaluate(self, verbose: bool)
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>448</x>
+      <y>760</y>
+      <w>168</w>
+      <h>56</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;interface&gt;&gt;
+Trainer
+--
+--
++train(self)</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>352</x>
+      <y>848</y>
+      <w>344</w>
+      <h>88</h>
+    </coordinates>
+    <panel_attributes>YOLOTrainer
+--
++config: BasicConfig
++annotationFiles: Sequence[str]
+--
++__init__(self, config: BasicConfig, annotationFiles: Sequence[str])
++createAnnotationFile(self)
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>520</x>
+      <y>808</y>
+      <w>24</w>
+      <h>56</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;50.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>344</x>
+      <y>576</y>
+      <w>360</w>
+      <h>96</h>
+    </coordinates>
+    <panel_attributes>HPGenerator
+--
++ranges: Sequence[tuple]
++initialTries: Sequence[tuple]
+--
++__init__(self, initialTries: Sequence[tuple], ranges: Sequence[tuple])
++getNextRange(self)</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>360</x>
+      <y>696</y>
+      <w>312</w>
+      <h>56</h>
+    </coordinates>
+    <panel_attributes>LinearHPGenerator
+--
+--
++__init__(self, ranges: Sequence[tuple], gridSize: int)
+-__updateToRange(self, number: float, rng: Tuple[float, float]</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>512</x>
+      <y>664</y>
+      <w>24</w>
+      <h>48</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;40.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1000</x>
+      <y>800</y>
+      <w>208</w>
+      <h>504</h>
+    </coordinates>
+    <panel_attributes>BasicConfig
+--
++trainId: str
++modelName: str
++inputShape: Tuple[int, int]
++freezeNoEpochs: int
++noFreezeNoEpochs: int
++isTiny: boolean
++validationSplit: float
++freezeBatchSize: int
++noFreezeBatchSize: int
++loadPreTrained: boolean
++preTrainedModelPath: str
++checkpointPeriod: int
++initialLR: float
++alreadyTrainedEpochs: int
++createThreshold: float
++removeThreshold: float
++surviveThreshold: float
++surviveMovePercent: float
++minScorePrediction: float
++maxNrOfObjectsPerFrame: int
++maxAge: int
++imageGenerationSavePeriod: int
++imageGenerationSavePath: str
++imageGenerationSaveFileName: str
++batchSplit: Tuple[float, float, float, float]
++trackerType: str
+-__dict__
+--
++save(self, configFile: str)
++saveText(self, configFile: str)
++getDictionary(self)
++updateDictionary(self)
++getModelPath(self)
++getAnchorsPath(self)
++getPredictionsPath(self)
+_+configName()_
++getTrackingHyperParameters(self)
++__str__(self)</panel_attributes>
+    <additional_attributes/>
+  </element>
+</diagram>

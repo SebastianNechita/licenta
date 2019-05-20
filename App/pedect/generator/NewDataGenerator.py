@@ -16,8 +16,7 @@ class NewDataGenerator:
         self.videoHolder = videoHolder
         self.textPattern = textPattern
 
-    def generateNewData(self, selectPeriod: int, saveFolder: str, saveFileName: str, verbose: bool = False,
-                        frameNr: int = MAX_VIDEO_LENGTH) -> None:
+    def generateNewData(self, selectPeriod: int, saveFolder: str, saveFileName: str, verbose: bool = False, frameNr: int = MAX_VIDEO_LENGTH) -> None:
         toIterate = range(min(self.videoHolder.getLength(), frameNr))
         if verbose:
             toIterate = tqdm(toIterate)

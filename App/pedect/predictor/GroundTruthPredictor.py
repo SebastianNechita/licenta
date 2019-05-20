@@ -1,3 +1,4 @@
+from pedect.dataset.datasetHelper import findDatasetByName
 from pedect.input.inputProcessing import *
 from pedect.predictor.Predictor import Predictor
 from pedect.predictor.PredictedBox import PredictedBox
@@ -5,8 +6,8 @@ from pedect.predictor.VideoHolder import *
 
 
 class GroundTruthPredictor(Predictor, VideoHolder):
-    def finishPrediction(self):
-        pass
+    # def finishPrediction(self):
+    #     pass
 
     def __init__(self, chosenDataset, setName: str, videoNr: str):
         if isinstance(chosenDataset, str):

@@ -1,6 +1,6 @@
 import copy
 import random
-from typing import Sequence
+from typing import Sequence, Tuple
 
 from tqdm import tqdm
 
@@ -9,7 +9,7 @@ from pedect.evaluator.Evaluator import Evaluator
 from pedect.predictor.GroundTruthPredictor import GroundTruthPredictor
 from pedect.predictor.MinScoreWrapperPredictor import MinScoreWrapperPredictor
 from pedect.predictor.TrackerPredictor import TrackerPredictor
-from pedect.predictor.YoloPredictor import YoloPredictor
+from pedect.predictor.YOLOPredictor import YOLOPredictor
 from pedect.tracker.Tracker import Tracker
 from pedect.tracker.trackerHelper import getTrackerFromConfig
 from pedect.utils.constants import MAX_VIDEO_LENGTH
@@ -20,7 +20,7 @@ from pedect.utils.parallel import executor
 class HyperParametersTuner:
 
     @staticmethod
-    def __findAnswerForConfig(config, tracker, gtPredictors, maxFrames, withPartialOutput, threadNr) -> float:
+    def __findAnswerForConfig(config: BasicConfig, tracker: Tracker, gtPredictors: Sequence[GroundTruthPredictor], maxFrames: int, withPartialOutput: bool) -> float:
         predictors = findTrackerPredictorsFromVideoList(tracker, config, gtPredictors)
         evaluator = Evaluator(predictors, gtPredictors, maxFrames)
         result = evaluator.evaluate(withPartialOutput)
@@ -38,23 +38,25 @@ class HyperParametersTuner:
     #     return result
 
     @staticmethod
-    def tryToFindBestConfig(config, videosList, noIterations, ctRange, rtRange, stRange, smpRange, mspRange,
-                            maxFrames = MAX_VIDEO_LENGTH, withPartialOutput = False, rangeSize: int = None):
+    def tryToFindBestConfig(config: BasicConfig, videosList: Sequence[Tuple[str, str, str]], noIterations: int, ctRange: tuple, rtRange: tuple, stRange: tuple, smpRange: tuple, mspRange: tuple, maxFrames: int = MAX_VIDEO_LENGTH, withPartialOutput: bool = False, rangeSize: int = None):
         gtPredictors = findGroundTruthFromVideoList(videosList)
-        yoloPredictors = [YoloPredictor(gtPredictor, config) for gtPredictor in gtPredictors]
+        yoloPredictors = [YOLOPredictor(gtPredictor, config) for gtPredictor in gtPredictors]
         result = Evaluator(yoloPredictors, gtPredictors, maxFrames).evaluate(withPartialOutput)
         print("YoloPredictor ", " ---> ", result)
-        bestResult = (0, -1)
         if rangeSize is None:
             original = (config.createThreshold, config.removeThreshold, config.surviveThreshold, config.surviveMovePercent,
                         config.minScorePrediction)
             unaffected = (0.0, 0.0, 1.0, 1.0, 0.0)
             hpGenerator = HPGenerator([unaffected, original], [ctRange, rtRange, stRange, smpRange, mspRange])
         else:
-            hpGenerator = GridHPGenerator([ctRange, rtRange, stRange, smpRange, mspRange], rangeSize)
+            hpGenerator = LinearHPGenerator([ctRange, rtRange, stRange, smpRange, mspRange], rangeSize)
         executionList = []
         thrNo = 0
-        for _ in range(noIterations):
+        toIterate = range(noIterations)
+        extraTracker = getTrackerFromConfig(config)
+        if not extraTracker.parallelizable():
+            toIterate = tqdm(toIterate)
+        for _ in toIterate:
             r = hpGenerator.getNextRange()
             newConfig = copy.deepcopy(config)
             newConfig.createThreshold, newConfig.removeThreshold, newConfig.surviveThreshold, \
@@ -62,24 +64,24 @@ class HyperParametersTuner:
             tracker = getTrackerFromConfig(newConfig)
             if not tracker.parallelizable():
                 result = HyperParametersTuner.__findAnswerForConfig(newConfig, tracker, gtPredictors, maxFrames,
-                                                                    withPartialOutput, thrNo)
-                if result >= bestResult[1]:
-                    bestResult = (newConfig, result)
+                                                                    withPartialOutput)
+                executionList.append((newConfig, result))
             else:
                 executionList.append((newConfig, executor.submit(HyperParametersTuner.__findAnswerForConfig, newConfig,
-                                                                 tracker, gtPredictors, maxFrames, withPartialOutput, thrNo)))
+                                                                 tracker, gtPredictors, maxFrames, withPartialOutput)))
                 # print("Started a thread!")
             thrNo = thrNo + 1
-        for i, result in tqdm(enumerate(executionList)):
-            executionList[i] = result[0], result[1].result()
+        if extraTracker.parallelizable():
+            for i, result in tqdm(enumerate(executionList)):
+                executionList[i] = result[0], result[1].result()
 
         executionList.sort(key=lambda x: (x[1]), reverse=True)
-        executionList = executionList[:min(len(executionList), 100)]
-        [print(str(config.getTrackingHyperParameters()), " ---> ", result) for config, result in executionList]
-        return executionList[0]
+        # executionList = executionList[:min(len(executionList), 100)]
+        # [print(str(config.getTrackingHyperParameters()), " ---> ", result) for config, result in executionList]
+        return executionList
 
 class HPGenerator:
-    def __init__(self, initialTries, ranges):
+    def __init__(self, initialTries: Sequence[tuple], ranges: Sequence[tuple]):
         self.initialTries = initialTries
         self.ranges = ranges
 
@@ -93,12 +95,12 @@ class HPGenerator:
             result.append(random.randint(0, 100) / 100 * (cRange[1] - cRange[0]) + cRange[0])
         return tuple(result)
 
-class GridHPGenerator(HPGenerator):
+class LinearHPGenerator(HPGenerator):
 
-    def __updateToRange(self, number, rng):
+    def __updateToRange(self, number: float, rng: Tuple[float, float]):
         return int(100 * (rng[0] + (rng[1] - rng[0]) * number)) / 100.0
 
-    def __init__(self, ranges, gridSize):
+    def __init__(self, ranges: Sequence[tuple], gridSize: int):
         assert gridSize > 1
         initialTries = []
         rn = [float(i / (gridSize - 1)) for i in range(gridSize)]
@@ -129,7 +131,7 @@ class GridHPGenerator(HPGenerator):
 
 
 
-def findGroundTruthFromVideoList(videosList: Sequence[tuple]) -> Sequence[GroundTruthPredictor]:
+def findGroundTruthFromVideoList(videosList: Sequence[Tuple[str, str, str]]) -> Sequence[GroundTruthPredictor]:
     gtPredictors = []
     # i = 0
     for datasetName, setName, videoName in videosList:
@@ -153,7 +155,7 @@ def findTrackerPredictorsFromVideoList(tracker: Tracker, config: BasicConfig,
         # i = i + 1
         # print("Start ")
         # start = time.time()
-        yoloPredictor = YoloPredictor(gtPredictor, config)
+        yoloPredictor = YOLOPredictor(gtPredictor, config)
         # print("YoloPredictor ", time.time() - start)
         # start = time.time()
         trackerPredictor = TrackerPredictor(yoloPredictor, gtPredictor, tracker, config)

@@ -11,5 +11,5 @@ class MinScoreWrapperPredictor(Predictor):
         prediction = self.predictor.predictForFrame(frameNr)
         return [pred for pred in prediction if pred.getProb() >= self.minScore]
 
-    def finishPrediction(self):
-        self.predictor.finishPrediction()
+    # def finishPrediction(self):
+    #     self.predictor.finishPrediction()

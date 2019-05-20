@@ -3,6 +3,7 @@ from typing import Tuple, Sequence
 import cv2
 
 from pedect.tracker.Tracker import Tracker
+from pedect.tracker.TimesHolder import TimesHolder
 
 
 class OpenCVTracker(Tracker):
@@ -20,10 +21,13 @@ class OpenCVTracker(Tracker):
     }
 
     def __init__(self, trackerType):
+        Tracker.__init__(self)
         self.trackerType = trackerType
         self.__trackers = {}
 
-    def track(self, uniqueId: str, image, bbox: Tuple[int, int, int, int] = None) -> Tuple[int, int, int, int]:
+    def track(self, uniqueId: str, image, bbox: Tuple[int, int, int, int] = None, imageHash: int = None) -> \
+            Tuple[int, int, int, int]:
+        TimesHolder.trackerAccessed += 1
         if bbox is not None:
             tr = self.OPENCV_OBJECT_TRACKERS[self.trackerType]()
             self.__trackers[uniqueId] = tr
@@ -32,15 +36,15 @@ class OpenCVTracker(Tracker):
             box = self.__trackers[uniqueId].update(image)[1]
             return box[0], box[1], box[2] + box[0], box[3] + box[1]
 
-    def clearTracker(self):
-        # print("\nClearing " + str(len(self.__trackers)) + " trackers...")
-        del self.__trackers
-        self.__trackers = {}
+    # def clearTracker(self):
+    #     # print("\nClearing " + str(len(self.__trackers)) + " trackers...")
+    #     del self.__trackers
+    #     self.__trackers = {}
 
-    def trackAll(self, uniqueIds: Sequence[str], image) -> dict:
+    def trackAll(self, uniqueIds: Sequence[str], image, imageHash: int = None) -> dict:
         uidsSet = set(uniqueIds)
         keys = [x for x in self.__trackers.keys()]
         for key in keys:
             if key not in uidsSet:
                 self.__trackers.pop(key)
-        return super().trackAll(uniqueIds, image)
+        return super().trackAll(uniqueIds, image, imageHash)

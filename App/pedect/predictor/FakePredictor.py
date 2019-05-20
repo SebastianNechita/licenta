@@ -1,16 +1,18 @@
 import random
+from typing import Tuple
 
 from pedect.predictor.Predictor import Predictor
+from pedect.predictor.VideoHolder import VideoHolder
 
 
 class FakePredictor(Predictor):
-    def finishPrediction(self):
-        pass
+    # def finishPrediction(self):
+    #     pass
 
     # fakeProbRange = (0.0, 0.8)
     # realProbRange = (0.3, 1.0)
 
-    def __init__(self, fakeProbRange: tuple, realProbRange: tuple, predictor, videoHolder):
+    def __init__(self, fakeProbRange: Tuple[float, float], realProbRange: Tuple[float, float], predictor: Predictor, videoHolder: VideoHolder):
         self.fakeProbRange = fakeProbRange
         self.realProbRange = realProbRange
         self.predictor = predictor
@@ -23,7 +25,7 @@ class FakePredictor(Predictor):
         return boxes
 
     @staticmethod
-    def __limitBetween(number, left: int, right: int):
+    def __limitBetween(number: int, left: int, right: int):
         if number < left:
             number = left
         if number > right:

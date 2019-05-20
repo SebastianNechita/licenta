@@ -11,6 +11,7 @@ from keras.callbacks import TensorBoard, ModelCheckpoint, ReduceLROnPlateau, Ear
 from yolo3.model import preprocess_true_boxes, yolo_body, tiny_yolo_body, yolo_loss
 from yolo3.utils import get_random_data
 
+from pedect.config.BasicConfig import BasicConfig
 from pedect.trainer.Trainer import Trainer
 from pedect.utils.constants import *
 
@@ -23,8 +24,8 @@ class LRTensorBoard(TensorBoard):
         super().on_epoch_end(epoch, logs)
 
 
-class YoloTrainer(Trainer):
-    def __init__(self, config, annotationFiles: Sequence[str]=None):
+class YOLOTrainer(Trainer):
+    def __init__(self, config: BasicConfig, annotationFiles: Sequence[str]=None):
         if annotationFiles is None:
             annotationFiles = [ANNOTATIONS_FILE]
         self.config = config

@@ -4,7 +4,7 @@ from pedect.utils.constants import *
 
 
 class BasicConfig:
-    def save(self, configFile = None):
+    def save(self, configFile: str = None):
         if configFile is None:
             configFile = os.path.join(MODELS_DIR, self.trainId, "config.pickle")
         self.updateDictionary()
@@ -12,7 +12,7 @@ class BasicConfig:
         pickle.dump(self, f)
         f.close()
 
-    def saveText(self, configFile=None):
+    def saveText(self, configFile: str = None):
         if configFile is None:
             configFile = os.path.join(MODELS_DIR, self.trainId, "config.txt")
         f = open(configFile, 'w+')
@@ -76,7 +76,8 @@ class BasicConfig:
     def getPredictionsPath(self):
         return os.path.join(PREDICTIONS_PATH, str(self.trainId) + "-" + str(self.alreadyTrainedEpochs))
 
-    def configName(self):
+    @staticmethod
+    def configName():
         return "BasicConfig"
 
     def getTrackingHyperParameters(self):

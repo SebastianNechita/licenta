@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>Python</ID>
+  <OriginalElement>#E:/licenta/App/pedect/tracker</OriginalElement>
+  <nodes>
+    <node x="0.0" y="212.0">pedect.tracker.trackerHelper.CachingTracker</node>
+    <node x="1608.0" y="223.0">pedect.tracker.OpenCVTracker.OpenCVTracker</node>
+    <node x="292.0" y="485.0">pedect.tracker.trackerHelper.CachingTrackerManager</node>
+    <node x="536.0" y="256.0">pedect.tracker.Re3ObjectTracker.Re3ObjectTracker</node>
+    <node x="804.0" y="0.0">pedect.tracker.Tracker.Tracker</node>
+    <node x="1072.0" y="256.0">pedect.tracker.FakeTracker.FakeTracker</node>
+    <node x="0.0" y="485.0">pedect.tracker.TimesHolder.TimesHolder</node>
+  </nodes>
+  <notes />
+  <edges>
+    <edge source="pedect.tracker.OpenCVTracker.OpenCVTracker" target="pedect.tracker.Tracker.Tracker">
+      <point x="0.0" y="-103.0" />
+      <point x="1866.0" y="182.0" />
+      <point x="1255.5" y="182.0" />
+      <point x="193.5" y="81.0" />
+    </edge>
+    <edge source="pedect.tracker.Re3ObjectTracker.Re3ObjectTracker" target="pedect.tracker.Tracker.Tracker">
+      <point x="0.0" y="-70.0" />
+      <point x="794.0" y="192.0" />
+      <point x="997.5" y="192.0" />
+      <point x="-64.5" y="81.0" />
+    </edge>
+    <edge source="pedect.tracker.FakeTracker.FakeTracker" target="pedect.tracker.Tracker.Tracker">
+      <point x="0.0" y="-70.0" />
+      <point x="1330.0" y="192.0" />
+      <point x="1126.5" y="192.0" />
+      <point x="64.5" y="81.0" />
+    </edge>
+    <edge source="pedect.tracker.trackerHelper.CachingTracker" target="pedect.tracker.Tracker.Tracker">
+      <point x="0.0" y="-114.0" />
+      <point x="258.0" y="182.0" />
+      <point x="868.5" y="182.0" />
+      <point x="-193.5" y="81.0" />
+    </edge>
+  </edges>
+  <settings layout="Hierarchic Group" zoom="1.0" x="1377.0" y="307.5" />
+  <SelectedNodes />
+  <Categories>
+    <Category>Methods</Category>
+    <Category>Inner Classes</Category>
+    <Category>Fields</Category>
+  </Categories>
+</Diagram>
+
