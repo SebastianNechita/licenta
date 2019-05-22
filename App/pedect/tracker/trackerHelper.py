@@ -33,12 +33,27 @@ class CachingTrackerManager:
     @staticmethod
     def getConfigurationForTracker(trackerType: str):
         if trackerType not in CachingTrackerManager.trackersConfigurations:
+            print("Initializing new cache for tracker", trackerType)
             CachingTrackerManager.trackersConfigurations[trackerType] = ({}, {}, getTrackerFromTrackerType(trackerType))
         return CachingTrackerManager.trackersConfigurations[trackerType]
 
     @staticmethod
     def clearCacheForTrackerType(trackerType: str):
-        CachingTrackerManager.trackersConfigurations.pop(trackerType)
+        w = trackerType.split(" ")
+        if len(w) > 1:
+            trackerType = w[1]
+        print("Clearing tracker cache for", trackerType)
+        if trackerType in CachingTrackerManager.trackersConfigurations:
+            CachingTrackerManager.trackersConfigurations.pop(trackerType)
+
+        # CachingTrackerManager.trackersConfigurations[trackerType][0].clear()
+        # CachingTrackerManager.trackersConfigurations[trackerType][1].clear()
+        # CachingTrackerManager.trackersConfigurations[trackerType][2][0] = getTrackerFromTrackerType(trackerType)
+
+    @staticmethod
+    def clearAllCache():
+        print("Clearing tracker cache for all")
+        CachingTrackerManager.trackersConfigurations = {}
 
 class CachingTracker(Tracker):
 
@@ -53,6 +68,7 @@ class CachingTracker(Tracker):
 
     def track(self, uniqueId: str, image, bbox: Tuple[int, int, int, int] = None, imageHash: int = None) -> \
             Tuple[int, int, int, int]:
+
         TimesHolder.cachedTrackerAccessed += 1
         if imageHash is None:
             print("Image hash is None!")
@@ -61,10 +77,12 @@ class CachingTracker(Tracker):
             theHash = hash((imageHash, bbox))
             self.idsToHash[uniqueId] = theHash
             if theHash not in self.hashToAnswer:
+                # print("Tracking...")
                 self.hashToAnswer[theHash] = {imageHash: self.tracker.track(str(theHash), image, bbox)}
             return self.hashToAnswer[theHash][imageHash]
         theHash = self.idsToHash[uniqueId]
         if imageHash not in self.hashToAnswer[theHash]:
+            # print("Tracking...")
             self.hashToAnswer[theHash][imageHash] = self.tracker.track(str(theHash), image)
         return self.hashToAnswer[theHash][imageHash]
 

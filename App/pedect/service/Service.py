@@ -39,38 +39,37 @@ class Service:
             videosList = self.splitIntoBatches()[1]
         gtPredictors = findGroundTruthFromVideoList(videosList)
         yoloPredictors = [YOLOPredictor(gtPredictor, self.config) for gtPredictor in gtPredictors]
-        result = Evaluator(yoloPredictors, gtPredictors, noFrames).evaluate(withPartialOutput)
+        evaluator = Evaluator(noFrames)
+        [evaluator.addEvaluation(predictor, groundTruthPredictor, withPartialOutput)
+         for predictor, groundTruthPredictor in zip(yoloPredictors, gtPredictors)]
+        result = evaluator.evaluate()
         return result
 
-    def optimizeTrackerConfig(self, ctRange: Tuple[float, float], rtRange: Tuple[float, float], stRange: Tuple[float, float], smpRange: Tuple[float, float], mspRange: Tuple[float, float], videosList: Sequence[Tuple[str, str, str]] = None, noIterations: int = 100, noFrames: int=30, withPartialOutput: bool = False, rangeSize: int = None) -> None:
+    def optimizeTrackerConfig(self, fileName, trackerTypes, ctRange: Tuple[float, float], rtRange: Tuple[float, float], stRange: Tuple[float, float], smpRange: Tuple[float, float], mspRange: Tuple[float, float], videosList: Sequence[Tuple[str, str, str]] = None, noIterations: int = 100, noFrames: int=30, withPartialOutput: bool = False, rangeSize: int = None) -> None:
         if videosList is None:
             videosList = self.splitIntoBatches()[2]
         print("Working on ", videosList)
-        trackers = ["cached medianflow", "cached mosse", "cached kcf"]
         baseDir = 'results'
-        keys = ["createThreshold", "removeThreshold", "surviveThreshold", "surviveMovePercent", "minScorePrediction"]
-        initialTrackerType = self.config.trackerType
+        keys = ["trackerType", "createThreshold", "removeThreshold", "surviveThreshold", "surviveMovePercent", "minScorePrediction"]
+        evaluations = ['mAP', "Elapsed time", "GTmAP", "Memory"]
+        titles = keys + evaluations
+        # keys = keys + evaluations
         emptyDirectory(baseDir)
-        for trackerType in trackers:
-            print("Tracker type: ", trackerType)
-            self.config.trackerType = trackerType
-            results = HyperParametersTuner.tryToFindBestConfig(self.config, videosList,
-                                                               noIterations,
-                                                               ctRange, rtRange, stRange, smpRange, mspRange,
-                                                               noFrames, withPartialOutput, rangeSize)
-            words = trackerType.split(" ")
-            if len(words) > 1:
-                CachingTrackerManager.clearCacheForTrackerType(words[1])
-            f = open(os.path.join(baseDir, trackerType.replace(" ", "_") + ".txt"), "w")
-            f.write('{:18s} | {:18s} | {:18s} | {:18s} | {:18s} | Result \n'.format(*keys))
-            for result in results:
-                params = ([result[0].getTrackingHyperParameters()[x] for x in keys] + [result[1]])
-                # print(params)
-                f.write('{:18f} | {:18f} | {:18f} | {:18f} | {:18f} | {:18f}\n'.format(*params))
-            f.close()
-        self.config.trackerType = initialTrackerType
-        # print("Found best config with MaP = %s:\n%s" % (result, str(bestConfig)))
-        # self.config = bestConfig
+        results = HyperParametersTuner.tryToFindBestConfig(self.config, videosList,
+                                                           noIterations, trackerTypes,
+                                                           ctRange, rtRange, stRange, smpRange, mspRange,
+                                                           noFrames, withPartialOutput, rangeSize)
+        f = open(os.path.join(baseDir, fileName), "w")
+        stringPattern = '{:18s}'
+        floatPattern = '{:18f}'
+        bar = " | "
+        f.write((stringPattern + (bar + stringPattern)*(len(titles) - 1) + "\n").format(*titles))
+        for result in results:
+            params = ([result[0].getTrackingHyperParameters()[x] for x in keys] + [result[1][metric] for metric in evaluations])
+            f.write((stringPattern + (bar + floatPattern)*(len(titles) - 1) + "\n").format(*params))
+        f.close()
+
+
 
     def playVideo(self, video: Tuple[str, str, str], config: BasicConfig = None, nrFrames = MAX_VIDEO_LENGTH) -> None:
         if config is None:

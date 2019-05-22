@@ -1,4 +1,5 @@
 import random
+import time
 from typing import Sequence
 
 from pedect.predictor.GroundTruthPredictor import GroundTruthPredictor
@@ -15,70 +16,109 @@ import math
 
 import numpy as np
 
+class EvaluatorMemoryManager:
+    existentValues = {}
+    existentValuesReverse = []
+
+    @staticmethod
+    def encodeLabel(val):
+        if val not in EvaluatorMemoryManager.existentValues:
+            EvaluatorMemoryManager.existentValues[val] = len(EvaluatorMemoryManager.existentValues)
+            EvaluatorMemoryManager.existentValuesReverse.append(val)
+        return EvaluatorMemoryManager.existentValues[val]
+
+    @staticmethod
+    def decodeLabel(val):
+        return EvaluatorMemoryManager.existentValuesReverse[val]
+
+
 class Evaluator:
-    def __init__(self, predictors: Sequence[Predictor], groundTruthPredictors: Sequence[GroundTruthPredictor], maxFrames: int = MAX_VIDEO_LENGTH):
-        self.predictors = predictors
-        self.groundTruthPredictors = groundTruthPredictors
+    def __init__(self, maxFrames: int = MAX_VIDEO_LENGTH):
         self.maxFrames = maxFrames
         self.computed = False
         self.result = 0
         self.predictedDict = {}
         self.gtDict = {}
         self.counter = 0
+        self.elapsedTime = 0
 
-    def addEvaluation(self, predictor, groundTruthPredictor, verbose):
+
+
+    def addEvaluation(self, predictor: Predictor, groundTruthPredictor: GroundTruthPredictor, verbose: bool):
+        start = time.time()
+        s = random.getstate()
+        random.seed(3)
         rangeToIterate = range(min(groundTruthPredictor.getLength(), self.maxFrames))
         if verbose:
             rangeToIterate = tqdm(rangeToIterate)
-        # answersList = []
         for frameNr in rangeToIterate:
             groundTruthObjects = groundTruthPredictor.predictForFrame(frameNr)
             predictedObjects = predictor.predictForFrame(frameNr)
-            self.gtDict[self.counter] = [(o.getLabel(), o.getX1(), o.getY1(), o.getX2(), o.getY2())
-                               for o in groundTruthObjects]
-            self.predictedDict[self.counter] = [(o.getLabel(), o.getProb(), o.getX1(), o.getY1(), o.getX2(), o.getY2())
-                                      for o in predictedObjects]
+            self.gtDict[self.counter] = EvaluatorMemoryManager.encodeLabel(tuple([(o.getLabel(), o.getX1(), o.getY1(), o.getX2(), o.getY2())
+                                                                                   for o in groundTruthObjects]))
+            self.predictedDict[self.counter] = EvaluatorMemoryManager.encodeLabel(tuple([(o.getLabel(), o.getProb(), o.getX1(), o.getY1(), o.getX2(), o.getY2())
+                                      for o in predictedObjects]))
             self.counter = self.counter + 1
-
-    def evaluate(self, verbose: bool = False):
-        if self.computed:
-            return self.result
-        s = random.getstate()
-        random.seed(3)
-
-        toIterate = zip(self.predictors, self.groundTruthPredictors)
-        if verbose:
-            toIterate = tqdm(toIterate)
-        # bigAnswersList = []
-        counter = 0
-        predictedDict = {}
-        gtDict = {}
-        for predictor, groundTruthPredictor in toIterate:
-            rangeToIterate = range(min(groundTruthPredictor.getLength(), self.maxFrames))
-            if verbose:
-                rangeToIterate = tqdm(rangeToIterate)
-            # answersList = []
-            for frameNr in rangeToIterate:
-                groundTruthObjects = groundTruthPredictor.predictForFrame(frameNr)
-                predictedObjects = predictor.predictForFrame(frameNr)
-                gtDict[counter] = [(o.getLabel(), o.getX1(), o.getY1(), o.getX2(), o.getY2())
-                                   for o in groundTruthObjects]
-                predictedDict[counter] = [(o.getLabel(), o.getProb(), o.getX1(), o.getY1(), o.getX2(), o.getY2())
-                                          for o in predictedObjects]
-                counter = counter + 1
-
-        self.result = findMaPModified(predictedDict, gtDict)
         random.setstate(s)
-        self.computed = True
-        return self.result
+        self.elapsedTime += time.time() - start
 
 
-class A:
-    ignore = None
-    set_class_iou = None
-    no_animation = None
-    no_plot = None
-    quiet = None
+    def evaluate(self):
+        start = time.time()
+        memory = get_size(self.predictedDict) + get_size(self.gtDict)
+
+        for k, v in self.gtDict.items():
+            self.gtDict[k] = EvaluatorMemoryManager.decodeLabel(v)
+        for k, v in self.predictedDict.items():
+            self.predictedDict[k] = EvaluatorMemoryManager.decodeLabel(v)
+
+        mAP = findMaPModified(self.predictedDict, self.gtDict)
+        GTmAP = findGTmAP(self.predictedDict, self.gtDict)
+        self.elapsedTime += time.time() - start
+        return {"mAP": mAP, "Elapsed time": self.elapsedTime, "GTmAP": GTmAP, "Memory": memory}
+
+
+import sys
+import inspect
+
+
+def get_size(obj, seen=None):
+    """Recursively finds size of objects in bytes"""
+    size = sys.getsizeof(obj)
+    if seen is None:
+        seen = set()
+    obj_id = id(obj)
+    if obj_id in seen:
+        return 0
+    # Important mark as seen *before* entering recursion to gracefully handle
+    # self-referential objects
+    seen.add(obj_id)
+    if hasattr(obj, '__dict__'):
+        for cls in obj.__class__.__mro__:
+            if '__dict__' in cls.__dict__:
+                d = cls.__dict__['__dict__']
+                if inspect.isgetsetdescriptor(d) or inspect.ismemberdescriptor(d):
+                    size += get_size(obj.__dict__, seen)
+                break
+    if isinstance(obj, dict):
+        size += sum((get_size(v, seen) for v in obj.values()))
+        size += sum((get_size(k, seen) for k in obj.keys()))
+    elif hasattr(obj, '__iter__') and not isinstance(obj, (str, bytes, bytearray)):
+        size += sum((get_size(i, seen) for i in obj))
+    if hasattr(obj, '__slots__'):  # can have __slots__ with __dict__
+        size += sum(get_size(getattr(obj, s), seen) for s in obj.__slots__ if hasattr(obj, s))
+    return size
+
+def findGTmAP(predictedDict, gtDict):
+    toRemoveKeys = set()
+    for key, v in gtDict.items():
+        if len(v) == 0:
+            toRemoveKeys.add(key)
+    # print(len(toRemoveKeys))
+    return findMaPModified(
+        {k: v for k, v in predictedDict.items() if k not in toRemoveKeys},
+        {k: v for k, v in gtDict.items() if k not in toRemoveKeys}
+    )
 
 def findMaPModified(predictedDict, gtDict):
     MINOVERLAP = 0.5  # default value (defined in the PASCAL VOC2012 challenge)

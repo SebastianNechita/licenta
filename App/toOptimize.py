@@ -1,5 +1,7 @@
 from pedect.config.BasicConfig import *
 import sys
+
+from pedect.evaluator.Evaluator import get_size, EvaluatorMemoryManager
 from pedect.service.Service import Service
 from pedect.evaluator.HyperParametersTuner import *
 import random
@@ -28,7 +30,7 @@ config.trackerType = "medianflow"
 print("Tracker type is", config.trackerType)
 service = Service(config)
 
-
+trackerTypes = ["cached tld", "cached csrt", "cached medianflow", "cached mosse", "cached kcf", "cached mil", "cached fake"]
 ctRange = (0.0, 1.0)
 rtRange = (0.0, 1.0)
 stRange = (0.0, 1.0)
@@ -40,12 +42,14 @@ for i in ranges:
     if i[0] != i[1]:
         howMany = howMany + 1
 # videosList = [ ("caltech", "set03", "V000"), ("caltech" , "set01", "V005"), ("caltech", "set01", "V000")]
-videosList = [("caltech", "set01", "V004")]
+# videosList = [("caltech", "set01", "V004")]
 # videosList = [("caltech", "set03", "V009")]
-# videosList = None
-rangeSize = 2
+videosList = None
+rangeSize = 6
 
-service.optimizeTrackerConfig(ctRange, rtRange, stRange, smpRange, mspRange, videosList, rangeSize ** howMany, 100, True, rangeSize)
+service.optimizeTrackerConfig("a.txt", trackerTypes, ctRange, rtRange, stRange, smpRange, mspRange, videosList, rangeSize ** howMany * len(trackerTypes), 500, True, rangeSize)
+# service.optimizeTrackerConfig("cached medianflow.txt", [trackerTypes[0]], ctRange, rtRange, stRange, smpRange, mspRange, videosList, rangeSize ** howMany, 600, True, rangeSize)
+# service.optimizeTrackerConfig("medianflow.txt", [trackerTypes[1]], ctRange, rtRange, stRange, smpRange, mspRange, videosList, rangeSize ** howMany, 600, True, rangeSize)
 print("Time slices are:")
 print([("%.2f%%" % x) for x in service.getRunningTimesPercentForTracker()])
 print("Tracker calls / CachedTracker calls / Percent")
@@ -53,3 +57,5 @@ ta = TimesHolder.trackerAccessed
 cta = TimesHolder.cachedTrackerAccessed
 print(ta, cta)
 print(ta, cta, "%.2f%%" % ((ta * 100) / max(ta, cta)))
+# 1. De ce nu se da niciodata initializare la cache din nou?
+# 2. Unde ii fake tracker in loguri?

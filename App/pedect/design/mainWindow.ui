@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1054</width>
+    <height>708</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QTabWidget" name="tab2">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>10</y>
+      <width>1041</width>
+      <height>681</height>
+     </rect>
+    </property>
+    <property name="currentIndex">
+     <number>4</number>
+    </property>
+    <widget class="QWidget" name="tab1">
+     <attribute name="title">
+      <string>Prepare Training Set</string>
+     </attribute>
+    </widget>
+    <widget class="QWidget" name="tab_2">
+     <attribute name="title">
+      <string>Train</string>
+     </attribute>
+    </widget>
+    <widget class="QWidget" name="tab">
+     <attribute name="title">
+      <string>Evaluate</string>
+     </attribute>
+    </widget>
+    <widget class="QWidget" name="tab_4">
+     <attribute name="title">
+      <string>Optimize Hyper-parameters</string>
+     </attribute>
+    </widget>
+    <widget class="QWidget" name="tab_6">
+     <attribute name="title">
+      <string>Watch Video</string>
+     </attribute>
+    </widget>
+    <widget class="QWidget" name="tab_5">
+     <attribute name="title">
+      <string>Retrain</string>
+     </attribute>
+    </widget>
+    <widget class="QWidget" name="tab_7">
+     <attribute name="title">
+      <string>Configuration</string>
+     </attribute>
+    </widget>
+   </widget>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

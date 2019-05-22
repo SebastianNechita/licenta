@@ -5,83 +5,88 @@ from typing import Sequence, Tuple
 from tqdm import tqdm
 
 from pedect.config.BasicConfig import BasicConfig
-from pedect.evaluator.Evaluator import Evaluator
+from pedect.evaluator.Evaluator import Evaluator, get_size, EvaluatorMemoryManager
 from pedect.predictor.GroundTruthPredictor import GroundTruthPredictor
 from pedect.predictor.MinScoreWrapperPredictor import MinScoreWrapperPredictor
 from pedect.predictor.TrackerPredictor import TrackerPredictor
 from pedect.predictor.YOLOPredictor import YOLOPredictor
 from pedect.tracker.Tracker import Tracker
-from pedect.tracker.trackerHelper import getTrackerFromConfig
+from pedect.tracker.trackerHelper import getTrackerFromConfig, CachingTrackerManager
 from pedect.utils.constants import MAX_VIDEO_LENGTH
 import time
 from pedect.utils.parallel import executor
+import gc
 
 
 class HyperParametersTuner:
 
     @staticmethod
-    def __findAnswerForConfig(config: BasicConfig, tracker: Tracker, gtPredictors: Sequence[GroundTruthPredictor], maxFrames: int, withPartialOutput: bool) -> float:
-        predictors = findTrackerPredictorsFromVideoList(tracker, config, gtPredictors)
-        evaluator = Evaluator(predictors, gtPredictors, maxFrames)
-        result = evaluator.evaluate(withPartialOutput)
-        # print(str(config.getTrackingHyperParameters()), " ---> ", result, "; Thread number:", threadNr)
-        return result
-
-    # @staticmethod
-    # def __giveAns(config, tracker, gtPredictors, maxFrames, withPartialOutput, threadNr) -> float:
-    #     print("I was started! -----> I am thread " + str(threadNr))
-    #     predictors = findTrackerPredictorsFromVideoList(tracker, config, gtPredictors)
-    #     result = Evaluator(predictors, gtPredictors, maxFrames).evaluate(withPartialOutput)
-    #     result = 3
-    #     print(str(config.getTrackingHyperParameters()), " ---> ", result)
-    #     print("I am done! -------> I am thread " + str(threadNr))
-    #     return result
+    def __findAnswerForConfig(config: BasicConfig, tracker: Tracker, gtPredictor: GroundTruthPredictor, evaluator: Evaluator, withPartialOutput: bool):
+        predictor = YOLOPredictor(gtPredictor, config)
+        predictor = TrackerPredictor(predictor, gtPredictor, tracker, config)
+        predictor = MinScoreWrapperPredictor(predictor, config.minScorePrediction)
+        evaluator.addEvaluation(predictor, gtPredictor, withPartialOutput)
 
     @staticmethod
-    def tryToFindBestConfig(config: BasicConfig, videosList: Sequence[Tuple[str, str, str]], noIterations: int, ctRange: tuple, rtRange: tuple, stRange: tuple, smpRange: tuple, mspRange: tuple, maxFrames: int = MAX_VIDEO_LENGTH, withPartialOutput: bool = False, rangeSize: int = None):
-        gtPredictors = findGroundTruthFromVideoList(videosList)
-        yoloPredictors = [YOLOPredictor(gtPredictor, config) for gtPredictor in gtPredictors]
-        result = Evaluator(yoloPredictors, gtPredictors, maxFrames).evaluate(withPartialOutput)
-        print("YoloPredictor ", " ---> ", result)
+    def tryToFindBestConfig(config: BasicConfig, videosList: Sequence[Tuple[str, str, str]], noIterations: int, trackerTypes: Sequence[str], ctRange: tuple, rtRange: tuple, stRange: tuple, smpRange: tuple, mspRange: tuple, maxFrames: int = MAX_VIDEO_LENGTH, withPartialOutput: bool = False, rangeSize: int = None):
+        yoloEvaluator = Evaluator(maxFrames)
         if rangeSize is None:
-            original = (config.createThreshold, config.removeThreshold, config.surviveThreshold, config.surviveMovePercent,
-                        config.minScorePrediction)
-            unaffected = (0.0, 0.0, 1.0, 1.0, 0.0)
-            hpGenerator = HPGenerator([unaffected, original], [ctRange, rtRange, stRange, smpRange, mspRange])
+            original = (config.trackerType, config.createThreshold, config.removeThreshold, config.surviveThreshold,
+                        config.surviveMovePercent, config.minScorePrediction)
+            unaffected = ("fake", 0.0, 0.0, 1.0, 1.0, 0.0)
+            hpGenerator = HPGenerator([unaffected, original], [trackerTypes, ctRange, rtRange, stRange, smpRange, mspRange])
         else:
-            hpGenerator = LinearHPGenerator([ctRange, rtRange, stRange, smpRange, mspRange], rangeSize)
+            hpGenerator = LinearHPGenerator([trackerTypes, ctRange, rtRange, stRange, smpRange, mspRange], rangeSize)
         executionList = []
-        thrNo = 0
         toIterate = range(noIterations)
         extraTracker = getTrackerFromConfig(config)
-        if not extraTracker.parallelizable():
-            toIterate = tqdm(toIterate)
+        evaluators = []
+        configurations = []
+        # trackers = []
         for _ in toIterate:
             r = hpGenerator.getNextRange()
+            evaluators.append(Evaluator(maxFrames))
             newConfig = copy.deepcopy(config)
-            newConfig.createThreshold, newConfig.removeThreshold, newConfig.surviveThreshold, \
-                newConfig.surviveMovePercent, newConfig.minScorePrediction = r
-            tracker = getTrackerFromConfig(newConfig)
-            if not tracker.parallelizable():
-                result = HyperParametersTuner.__findAnswerForConfig(newConfig, tracker, gtPredictors, maxFrames,
-                                                                    withPartialOutput)
-                executionList.append((newConfig, result))
-            else:
-                executionList.append((newConfig, executor.submit(HyperParametersTuner.__findAnswerForConfig, newConfig,
-                                                                 tracker, gtPredictors, maxFrames, withPartialOutput)))
-                # print("Started a thread!")
-            thrNo = thrNo + 1
+            newConfig.trackerType, newConfig.createThreshold, newConfig.removeThreshold, newConfig.surviveThreshold, \
+            newConfig.surviveMovePercent, newConfig.minScorePrediction = r
+            # tracker = getTrackerFromConfig(newConfig)
+            configurations.append(newConfig)
+            # trackers.append(tracker)
+        # if not extraTracker.parallelizable():
+        #     toIterate = tqdm(toIterate)
+        for datasetName, setName, videoName in tqdm(videosList):
+            gc.collect()
+            gtPredictor = GroundTruthPredictor(datasetName, setName, videoName)
+            yoloEvaluator.addEvaluation(YOLOPredictor(gtPredictor, config), gtPredictor, withPartialOutput)
+            for i in tqdm(toIterate):
+                newConfig = configurations[i]
+                tracker = getTrackerFromConfig(newConfig)
+                evaluator = evaluators[i]
+                if not tracker.parallelizable():
+                    if i > 0 and configurations[i - 1].trackerType != newConfig.trackerType:
+                        CachingTrackerManager.clearCacheForTrackerType(configurations[i - 1].trackerType)
+                    HyperParametersTuner.__findAnswerForConfig(newConfig, tracker, gtPredictor, evaluator,
+                                                                        withPartialOutput)
+                else:
+                    executionList.append(executor.submit(HyperParametersTuner.__findAnswerForConfig, newConfig,
+                                                                     tracker, gtPredictor, evaluator, withPartialOutput))
+        result = yoloEvaluator.evaluate()
+        print("YoloPredictor ", " ---> ", result)
         if extraTracker.parallelizable():
-            for i, result in tqdm(enumerate(executionList)):
-                executionList[i] = result[0], result[1].result()
-
-        executionList.sort(key=lambda x: (x[1]), reverse=True)
+            for result in tqdm(executionList):
+                result.result()
+        executionList.clear()
+        for i in tqdm(toIterate):
+            executionList.append((configurations[i], evaluators[i].evaluate()))
+        print("Memory in GB:", (get_size(EvaluatorMemoryManager.existentValuesReverse) + get_size(
+            EvaluatorMemoryManager.existentValues) + get_size(evaluators)) / (1024 ** 3))
+        executionList.sort(key=lambda x: (x[1]["mAP"]), reverse=True)
         # executionList = executionList[:min(len(executionList), 100)]
         # [print(str(config.getTrackingHyperParameters()), " ---> ", result) for config, result in executionList]
         return executionList
 
 class HPGenerator:
-    def __init__(self, initialTries: Sequence[tuple], ranges: Sequence[tuple]):
+    def __init__(self, initialTries: Sequence, ranges: Sequence[tuple]):
         self.initialTries = initialTries
         self.ranges = ranges
 
@@ -91,8 +96,13 @@ class HPGenerator:
             self.initialTries = self.initialTries[1:]
             return a
         result = []
-        for cRange in self.ranges:
-            result.append(random.randint(0, 100) / 100 * (cRange[1] - cRange[0]) + cRange[0])
+        for elem in self.ranges:
+            if isinstance(elem, tuple):
+                result.append(random.randint(0, 100) / 100 * (elem[1] - elem[0]) + elem[0])
+            elif isinstance(elem, list):
+                result.append(elem[random.randint(0, len(elem) - 1)])
+            else:
+                print("No known hyperParameter type to choose from!")
         return tuple(result)
 
 class LinearHPGenerator(HPGenerator):
@@ -106,24 +116,25 @@ class LinearHPGenerator(HPGenerator):
         rn = [float(i / (gridSize - 1)) for i in range(gridSize)]
         emptyRange = [0.0]
         rns = []
-        for i in range(5):
+        for i in range(1, 6):
             if ranges[i][0] == ranges[i][1]:
                 rns.append(emptyRange)
             else:
                 rns.append(rn)
-        for a in rns[0]:
-            for b in rns[1]:
-                for c in rns[2]:
-                    for d in rns[3]:
-                        for e in rns[4]:
-                            a1 = self.__updateToRange(a, ranges[0])
-                            b1 = self.__updateToRange(b, ranges[1])
-                            c1 = self.__updateToRange(c, ranges[2])
-                            d1 = self.__updateToRange(d, ranges[3])
-                            e1 = self.__updateToRange(e, ranges[4])
-                            configTry = (a1, b1, c1, d1, e1)
-                            initialTries.append(configTry)
-                            # print(configTry)
+        for aa in ranges[0]:
+            for a in rns[0]:
+                for b in rns[1]:
+                    for c in rns[2]:
+                        for d in rns[3]:
+                            for e in rns[4]:
+                                a1 = self.__updateToRange(a, ranges[1])
+                                b1 = self.__updateToRange(b, ranges[2])
+                                c1 = self.__updateToRange(c, ranges[3])
+                                d1 = self.__updateToRange(d, ranges[4])
+                                e1 = self.__updateToRange(e, ranges[5])
+                                configTry = (aa, a1, b1, c1, d1, e1)
+                                initialTries.append(configTry)
+                                # print(configTry)
 
 
         print(len(initialTries))

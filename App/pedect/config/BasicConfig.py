@@ -82,6 +82,7 @@ class BasicConfig:
 
     def getTrackingHyperParameters(self):
         return {
+            "trackerType": self.trackerType,
             "createThreshold": self.createThreshold,
             "removeThreshold": self.removeThreshold,
             "surviveThreshold": self.surviveThreshold,
