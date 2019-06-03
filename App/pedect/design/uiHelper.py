@@ -39,3 +39,16 @@ def populateModel(model, videoList):
         item.setCheckable(True)
         item.setData(tpl, 1)
         model.appendRow(item)
+
+def between0And1(number: float):
+    assert 0.0 <= number <= 1.0, "%f must be between 0.0 and 1.0 inclusive" % number
+    return number
+
+def getCheckedVideos(model):
+    trainList = []
+    for i in range(model.rowCount()):
+        item = model.item(i, 0)
+        if isinstance(item, QStandardItem):
+            if item.checkState() == Qt.CheckState.Checked:
+                trainList.append(tuple(item.data(1)))
+    return trainList

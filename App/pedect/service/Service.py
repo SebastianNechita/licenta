@@ -1,5 +1,3 @@
-from typing import *
-
 from pedect.config.BasicConfig import saveConfiguration
 from pedect.converter.ConverterToImages import ConverterToImagesYOLOv3
 from pedect.evaluator.HyperParametersTuner import *
@@ -7,7 +5,7 @@ from pedect.generator.NewDataGenerator import NewDataGenerator
 from pedect.predictor.GroundTruthPredictor import GroundTruthPredictor
 from pedect.predictor.TrackerPredictor import TrackerPredictor
 from pedect.predictor.YOLOPredictor import YOLOPredictor
-from pedect.tracker.trackerHelper import getTrackerFromConfig, CachingTrackerManager
+from pedect.tracker.trackerHelper import getTrackerFromConfig
 from pedect.trainer.YOLOTrainer import YOLOTrainer
 from pedect.utils.constants import *
 from pedect.utils.demo import playVideo
@@ -20,7 +18,6 @@ class Service:
         self.config = config
         self.imgSaveTextPattern = "%s-%s-%s-%s.jpg"
         self.tracker = getTrackerFromConfig(config)
-        self.trainer = YOLOTrainer(config)
         self.converter = ConverterToImagesYOLOv3(self.imgSaveTextPattern)
 
     def getTrainingVideoList(self):
@@ -44,10 +41,9 @@ class Service:
             self.converter.saveImagesFromGroundTruth(video[0], video[1], video[2])
         self.converter.writeAnnotationsFile()
 
-    def train(self) -> None:
-        self.trainer.config = self.config
-        self.trainer.train()
-
+    def train(self, config) -> None:
+        trainer = YOLOTrainer(config)
+        trainer.train()
 
     def evaluatePredictor(self, config, videosList: Sequence[Tuple[str, str, str]] = None, noFrames: int = MAX_VIDEO_LENGTH, withPartialOutput: bool = False) -> dict:
         if videosList is None:
@@ -94,29 +90,34 @@ class Service:
             config = self.config
         gtPredictor = GroundTruthPredictor(video[0], video[1], video[2])
         yoloPredictor = YOLOPredictor(gtPredictor, config)
-        trackerPredictor = TrackerPredictor(yoloPredictor, gtPredictor, self.tracker, config)
+        trackerPredictor = TrackerPredictor(yoloPredictor, gtPredictor, getTrackerFromConfig(config), config)
         playVideo([(yoloPredictor, [0, 255, 0]), (gtPredictor, [255, 0, 0]), (trackerPredictor, [0, 0, 255])],
                   gtPredictor, nrFrames)
 
-    def generateNewData(self, videoList: Sequence[Tuple[str, str, str]] = None, verbose: bool = False, nrFrames: int = MAX_VIDEO_LENGTH) -> None:
+    def generateNewData(self, config: BasicConfig, videoList: Sequence[Tuple[str, str, str]] = None, verbose: bool = False, nrFrames: int = MAX_VIDEO_LENGTH) -> None:
         if videoList is None:
             videoList = self.getGenerationVideoList()
-
-        NewDataGenerator.initializeDirectory(self.config.imageGenerationSavePath)
-        gtPredictors = findGroundTruthFromVideoList(videoList)
-        actualPredictors = findTrackerPredictorsFromVideoList(self.tracker, self.config, gtPredictors)
-        toIterate = zip(gtPredictors, actualPredictors)
+        NewDataGenerator.initializeDirectory(IMAGE_GENERATION_SAVE_PATH)
+        # gtPredictors = findGroundTruthFromVideoList(videoList)
+        gtPredictors = []
+        tracker = getTrackerFromConfig(config)
+        # i = 0
+        toIterate = videoList
         if verbose:
             toIterate = tqdm(toIterate)
-        for gtPredictor, actualPredictor in toIterate:
+        for datasetName, setName, videoName in toIterate:
+            gtPredictor = GroundTruthPredictor(datasetName, setName, videoName)
+            gtPredictors.append(gtPredictor)
+            yoloPredictor = YOLOPredictor(gtPredictor, config)
+            trackerPredictor = TrackerPredictor(yoloPredictor, gtPredictor, tracker, config)
+            actualPredictor = MinScoreWrapperPredictor(trackerPredictor, config.minScorePrediction)
             generator = NewDataGenerator(actualPredictor, gtPredictor, self.imgSaveTextPattern)
-            generator.generateNewData(self.config.imageGenerationSavePeriod, self.config.imageGenerationSavePath,
-                                      self.config.imageGenerationSaveFileName, verbose, nrFrames)
+            generator.generateNewData(config.imageGenerationSavePeriod, IMAGE_GENERATION_SAVE_PATH,
+                                      config.imageGenerationSaveFileName, verbose, nrFrames)
 
-    def retrain(self, trainId: str) -> None:
-        self.config.trainId = trainId
-        newAnnotationsFile = os.path.join(self.config.imageGenerationSavePath, self.config.imageGenerationSaveFileName)
-        trainer = YOLOTrainer(self.config, [ANNOTATIONS_FILE, newAnnotationsFile])
+    def retrain(self, config: BasicConfig) -> None:
+        newAnnotationsFile = os.path.join(IMAGE_GENERATION_SAVE_PATH, config.imageGenerationSaveFileName)
+        trainer = YOLOTrainer(config, [ANNOTATIONS_FILE, newAnnotationsFile])
         trainer.train()
 
     @staticmethod
@@ -176,6 +177,6 @@ class Service:
 
     @staticmethod
     def getAllAvailableTrackerTypes():
-        return ["csrt", "kcf", "boosting", "mil", "tld", "medianflow", "mosse"]
+        return ["fake", "csrt", "kcf", "boosting", "mil", "tld", "medianflow", "mosse"]
 
 

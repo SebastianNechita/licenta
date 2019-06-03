@@ -1,33 +1,22 @@
 import os
 
-BASE_DIR = ""
-DATA_DIR = ""
-FINAL_IMAGES_DIR = ""
-ANNOTATIONS_FILE = ""
-LABELS_FILE = ""
-CALTECH_DIR = ""
-INRIA_DIR = ""
-DAIMLER_DIR = ""
-MODELS_DIR = ""
-PREDICTIONS_PATH = ""
-YOLO_DIR = ""
+allPossibleOutputLabels = ["person", "people", "person-fa", "person?"]
 
-def updateBaseDir(newBaseDir = "."):
-    global BASE_DIR, DATA_DIR, FINAL_IMAGES_DIR, ANNOTATIONS_FILE, LABELS_FILE, CALTECH_DIR, INRIA_DIR, DAIMLER_DIR
-    global MODELS_DIR, PREDICTIONS_PATH, YOLO_DIR
-    BASE_DIR = newBaseDir
-    DATA_DIR = os.path.join(BASE_DIR, "..", "Data")
-    FINAL_IMAGES_DIR = os.path.join(DATA_DIR, "images")
-    ANNOTATIONS_FILE = os.path.join(FINAL_IMAGES_DIR, "annotations.csv")
-    LABELS_FILE = os.path.join(FINAL_IMAGES_DIR, "labels.csv")
-    CALTECH_DIR = os.path.join(DATA_DIR, "caltech")
-    INRIA_DIR = os.path.join(DATA_DIR, "inria")
-    DAIMLER_DIR = os.path.join(DATA_DIR, "daimler")
-    MODELS_DIR = os.path.join(BASE_DIR, "models")
-    PREDICTIONS_PATH = os.path.join(BASE_DIR, "predictions")
-    YOLO_DIR = os.path.join(BASE_DIR, 'keras-yolo3')
+BASE_DIR = "."
+DATA_DIR = os.path.join(BASE_DIR, "..", "Data")
+IMAGES_DIR = os.path.join(DATA_DIR, "images")
+FINAL_IMAGES_DIR = os.path.join(IMAGES_DIR, "groundTruth")
+ANNOTATIONS_FILE = os.path.join(FINAL_IMAGES_DIR, "annotations.csv")
+LABELS_FILE = os.path.join(FINAL_IMAGES_DIR, "labels.csv")
+CALTECH_DIR = os.path.join(DATA_DIR, "caltech")
+INRIA_DIR = os.path.join(DATA_DIR, "inria")
+DAIMLER_DIR = os.path.join(DATA_DIR, "daimler")
+MODELS_DIR = os.path.join(BASE_DIR, "models")
+PREDICTIONS_PATH = os.path.join(BASE_DIR, "predictions")
+YOLO_DIR = os.path.join(BASE_DIR, 'keras-yolo3')
 
-updateBaseDir()
+IMAGE_GENERATION_SAVE_PATH = os.path.join(IMAGES_DIR, "predicted")
+TEMP_IMAGES_FOLDER = os.path.join(IMAGES_DIR, "temp")
 
 MAX_VIDEO_LENGTH = 10000000
 MAX_WORKERS = 8  # for parallelization

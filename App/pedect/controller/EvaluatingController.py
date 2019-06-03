@@ -1,10 +1,9 @@
-from PySide2.QtCore import Qt
-from PySide2.QtGui import QStandardItemModel, QStandardItem
+from PySide2.QtGui import QStandardItemModel
 from PySide2.QtWidgets import QListView, QPushButton, QLineEdit
 
 from pedect.config.BasicConfig import getConfigFromTrainId
 from pedect.controller.TrainIdsController import TrainIdsController
-from pedect.design.uiHelper import deselectAllFromModel, selectVideosFromModel, populateModel
+from pedect.design.uiHelper import deselectAllFromModel, selectVideosFromModel, populateModel, getCheckedVideos
 from pedect.service.Service import Service
 
 
@@ -42,13 +41,8 @@ class EvaluatingController:
     def __evaluate(self):
         trainId = self.trainIdsController.getSelectedTrainId()
         config = getConfigFromTrainId(trainId)
-        trainList = []
-        for i in range(self.videosListModel.rowCount()):
-            item = self.videosListModel.item(i, 0)
-            if isinstance(item, QStandardItem):
-                if item.checkState() == Qt.CheckState.Checked:
-                    trainList.append(tuple(item.data(1)))
-        result = self.service.evaluatePredictor(config, trainList)
+        videoList = getCheckedVideos(self.videosListModel)
+        result = self.service.evaluatePredictor(config, videoList)
         self.resultEvaluationMAPLineEdit.setText(str(result['mAP']))
 
 

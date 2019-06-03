@@ -4,7 +4,8 @@ from PySide2.QtWidgets import QListView, QPushButton, QLineEdit, QCheckBox, QTab
 
 from pedect.config.BasicConfig import getConfigFromTrainId
 from pedect.controller.TrainIdsController import TrainIdsController
-from pedect.design.uiHelper import showSuccess, showError, deselectAllFromModel, selectVideosFromModel, populateModel
+from pedect.design.uiHelper import showSuccess, showError, deselectAllFromModel, selectVideosFromModel, populateModel, \
+    between0And1, getCheckedVideos
 from pedect.service.Service import Service
 
 
@@ -99,12 +100,7 @@ class OptimizeController:
             smpRange = (smpFrom, smpTo)
             mspRange = (mspFrom, mspTo)
 
-            trainList = []
-            for i in range(self.videosListModel.rowCount()):
-                item = self.videosListModel.item(i, 0)
-                if isinstance(item, QStandardItem):
-                    if item.checkState() == Qt.CheckState.Checked:
-                        trainList.append(tuple(item.data(1)))
+            videoList = getCheckedVideos(self.videosListModel)
 
             trackerTypeList = []
             for i in range(self.trackerTypesOptimizeListViewModel.rowCount()):
@@ -122,7 +118,7 @@ class OptimizeController:
             config = getConfigFromTrainId(trainId)
             self.service.config = config
             titles, rows = self.service.optimizeTrackerConfig("temp.txt", trackerTypeList, ctRange, rtRange, stRange,
-                                                              smpRange, mspRange, trainList, None, maxNoFrames, False,
+                                                              smpRange, mspRange, videoList, None, maxNoFrames, False,
                                                               stepSize)
             self.bestConfigurationsListViewModel.removeRows(0, self.bestConfigurationsListViewModel.rowCount())
             self.bestConfigurationsListViewModel.setHorizontalHeaderLabels(titles)
@@ -135,6 +131,3 @@ class OptimizeController:
 
 
 
-def between0And1(number: float):
-    assert 0.0 <= number <= 1.0, "%f must be between 0.0 and 1.0 inclusive" % number
-    return number

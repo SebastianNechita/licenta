@@ -1,6 +1,7 @@
 from PySide2.QtGui import QStandardItemModel, QStandardItem
 from PySide2.QtWidgets import QListView, QPushButton
 
+from pedect.config.BasicConfig import getConfigFromTrainId, saveConfiguration
 from pedect.service.Service import Service
 
 
@@ -18,7 +19,18 @@ class TrainIdsController:
         self.listView.setModel(self.listViewModel)
         self.__refreshTrainIdList()
         addNewTrainIdButton = window.findChild(QPushButton, 'addNewTrainIdButton')
+        copySelectedTrainIdButton = window.findChild(QPushButton, 'copySelectedTrainIdButton')
+
         addNewTrainIdButton.clicked.connect(self.__addNewTrainId)
+        copySelectedTrainIdButton.clicked.connect(self.__copySelectedTrainId)
+
+    def __copySelectedTrainId(self):
+        trainId = self.getSelectedTrainId()
+        config = getConfigFromTrainId(trainId)
+        config.trainId = self.__addNewTrainId()
+        config.alreadyTrainedEpochs = 0
+        config.preTrainedModelPath = "default"
+        saveConfiguration(config)
 
     def __refreshTrainIdList(self):
         self.listViewModel.clear()
@@ -31,6 +43,7 @@ class TrainIdsController:
         trainId = str(max(self.service.getAllTrainIds()) + 1)
         self.service.createNewTrainingConfiguration(trainId)
         self.__refreshTrainIdList()
+        return trainId
 
     def getSelectedTrainId(self):
         l = self.listView.selectedIndexes()

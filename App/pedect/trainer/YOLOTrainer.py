@@ -14,6 +14,8 @@ from yolo3.utils import get_random_data
 from pedect.config.BasicConfig import BasicConfig, saveConfiguration
 from pedect.trainer.Trainer import Trainer
 from pedect.utils.constants import *
+from pedect.utils.osUtils import emptyDirectory
+
 
 class LRTensorBoard(TensorBoard):
     def __init__(self, log_dir):  # add other arguments to __init__ if you need
@@ -29,10 +31,12 @@ class YOLOTrainer(Trainer):
         if annotationFiles is None:
             annotationFiles = [ANNOTATIONS_FILE]
         self.config = config
+        print(annotationFiles)
         self.annotationFiles = annotationFiles
 
     def createAnnotationFile(self) -> str:
-        path = os.path.join(BASE_DIR, 'temporary_annotations_file.csv')
+        emptyDirectory(TEMP_IMAGES_FOLDER)
+        path = os.path.join(TEMP_IMAGES_FOLDER, 'temporary_annotations_file.csv')
         writeFile = open(path, "w+")
         for aFile in self.annotationFiles:
             f = open(aFile, 'r')

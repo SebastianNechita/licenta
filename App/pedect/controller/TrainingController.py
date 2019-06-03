@@ -1,5 +1,7 @@
+import os
+
 from PySide2.QtCore import Qt
-from PySide2.QtWidgets import QPushButton, QCheckBox, QLineEdit, QMessageBox
+from PySide2.QtWidgets import QPushButton, QCheckBox, QLineEdit
 
 from pedect.config.BasicConfig import getConfigFromTrainId, saveConfiguration
 from pedect.controller.TrainIdsController import TrainIdsController
@@ -11,6 +13,8 @@ class TrainingController:
 
     def __init__(self, service: Service, trainIdsController: TrainIdsController):
         self.service = service
+        self.trainIdsController = trainIdsController
+
         self.window = None
         self.listViewModel = None
         self.modelNameTB = None
@@ -29,8 +33,7 @@ class TrainingController:
         self.isTinyCheckbox = None
         self.saveConfigurationButton = None
         self.saveConfigurationAndTrainButton = None
-        self.trainIdsController = trainIdsController
-
+        self.retrainCheckBox = None
 
 
     def setUp(self, window):
@@ -52,6 +55,7 @@ class TrainingController:
         self.isTinyCheckbox = window.findChild(QCheckBox, 'isTinyCheckbox')
         self.saveConfigurationButton = window.findChild(QPushButton, 'saveConfigurationButton')
         self.saveConfigurationAndTrainButton = window.findChild(QPushButton, 'saveConfigurationAndTrainButton')
+        self.retrainCheckBox = window.findChild(QCheckBox, 'retrainCheckBox')
 
         self.saveConfigurationButton.clicked.connect(self.__uiToModel)
         self.saveConfigurationAndTrainButton.clicked.connect(self.__saveAndTrain)
@@ -63,8 +67,12 @@ class TrainingController:
             return
         trainId = self.trainIdsController.getSelectedTrainId()
         config = getConfigFromTrainId(trainId)
-        self.service.config = config
-        self.service.train()
+        if self.retrainCheckBox.checkState() == Qt.CheckState.Checked:
+            print("Retraining!")
+            self.service.retrain(config)
+        else:
+            print("Training!")
+            self.service.train(config)
         self.__modelToUi()
         showSuccess("Training complete!")
 

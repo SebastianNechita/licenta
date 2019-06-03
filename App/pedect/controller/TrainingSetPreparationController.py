@@ -1,8 +1,7 @@
-from PySide2.QtCore import Qt
-from PySide2.QtGui import QStandardItemModel, QStandardItem
+from PySide2.QtGui import QStandardItemModel
 from PySide2.QtWidgets import QListView, QPushButton
 
-from pedect.design.uiHelper import deselectAllFromModel, selectVideosFromModel, populateModel
+from pedect.design.uiHelper import deselectAllFromModel, selectVideosFromModel, populateModel, getCheckedVideos
 from pedect.service.Service import Service
 
 
@@ -31,10 +30,5 @@ class TrainingSetPreparationController:
 
 
     def __prepareTrainingSet(self):
-        trainList = []
-        for i in range(self.videosListModel.rowCount()):
-            item = self.videosListModel.item(i, 0)
-            if isinstance(item, QStandardItem):
-                if item.checkState() == Qt.CheckState.Checked:
-                    trainList.append(tuple(item.data(1)))
-        self.service.prepareTrainingSet(trainList)
+        videoList = getCheckedVideos(self.videosListModel)
+        self.service.prepareTrainingSet(videoList)
