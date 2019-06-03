@@ -12,7 +12,7 @@ class ConverterToImagesYOLOv3:
         self.textPattern = textPattern
         self.csvSet = set()
         self.possibleLabels = {}
-        self.textPattern = ""
+        # self.textPattern = ""
         self.uId = 0
 
     def clearDirectory(self):

@@ -1,16 +1,33 @@
 import os
 
-BASE_DIR = os.path.join(".")
-DATA_DIR = os.path.join(BASE_DIR, "..", "Data")
-FINAL_IMAGES_DIR = os.path.join(DATA_DIR, "images")
-ANNOTATIONS_FILE = os.path.join(FINAL_IMAGES_DIR, "annotations.csv")
-LABELS_FILE = os.path.join(FINAL_IMAGES_DIR, "labels.csv")
-CALTECH_DIR = os.path.join(DATA_DIR, "caltech")
-INRIA_DIR = os.path.join(DATA_DIR, "inria")
-DAIMLER_DIR = os.path.join(DATA_DIR, "daimler")
-MODELS_DIR = os.path.join(BASE_DIR, "models")
-PREDICTIONS_PATH = os.path.join(BASE_DIR, "predictions")
-YOLO_DIR = os.path.join(BASE_DIR, 'keras-yolo3')
+BASE_DIR = ""
+DATA_DIR = ""
+FINAL_IMAGES_DIR = ""
+ANNOTATIONS_FILE = ""
+LABELS_FILE = ""
+CALTECH_DIR = ""
+INRIA_DIR = ""
+DAIMLER_DIR = ""
+MODELS_DIR = ""
+PREDICTIONS_PATH = ""
+YOLO_DIR = ""
+
+def updateBaseDir(newBaseDir = "."):
+    global BASE_DIR, DATA_DIR, FINAL_IMAGES_DIR, ANNOTATIONS_FILE, LABELS_FILE, CALTECH_DIR, INRIA_DIR, DAIMLER_DIR
+    global MODELS_DIR, PREDICTIONS_PATH, YOLO_DIR
+    BASE_DIR = newBaseDir
+    DATA_DIR = os.path.join(BASE_DIR, "..", "Data")
+    FINAL_IMAGES_DIR = os.path.join(DATA_DIR, "images")
+    ANNOTATIONS_FILE = os.path.join(FINAL_IMAGES_DIR, "annotations.csv")
+    LABELS_FILE = os.path.join(FINAL_IMAGES_DIR, "labels.csv")
+    CALTECH_DIR = os.path.join(DATA_DIR, "caltech")
+    INRIA_DIR = os.path.join(DATA_DIR, "inria")
+    DAIMLER_DIR = os.path.join(DATA_DIR, "daimler")
+    MODELS_DIR = os.path.join(BASE_DIR, "models")
+    PREDICTIONS_PATH = os.path.join(BASE_DIR, "predictions")
+    YOLO_DIR = os.path.join(BASE_DIR, 'keras-yolo3')
+
+updateBaseDir()
 
 MAX_VIDEO_LENGTH = 10000000
 MAX_WORKERS = 8  # for parallelization
@@ -19,3 +36,5 @@ MAX_WORKERS = 8  # for parallelization
 IMAGES_READING_VERBOSE = True
 
 USE_GLOBAL_PREDICTION_CACHE = True # increases ram usage
+
+

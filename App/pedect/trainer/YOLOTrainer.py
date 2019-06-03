@@ -11,7 +11,7 @@ from keras.callbacks import TensorBoard, ModelCheckpoint, ReduceLROnPlateau, Ear
 from yolo3.model import preprocess_true_boxes, yolo_body, tiny_yolo_body, yolo_loss
 from yolo3.utils import get_random_data
 
-from pedect.config.BasicConfig import BasicConfig
+from pedect.config.BasicConfig import BasicConfig, saveConfiguration
 from pedect.trainer.Trainer import Trainer
 from pedect.utils.constants import *
 
@@ -54,10 +54,7 @@ class YOLOTrainer(Trainer):
 
         # annotation_path = ANNOTATIONS_FILE
         models_dir = os.path.join(MODELS_DIR, config.trainId)
-        if not os.path.exists(models_dir):
-            os.makedirs(models_dir)
-        config.save()
-        config.saveText()
+        saveConfiguration(config)
         classes_path = LABELS_FILE
         anchors_path = config.getAnchorsPath()
         class_names = get_classes(classes_path)
@@ -151,8 +148,7 @@ class YOLOTrainer(Trainer):
         config.alreadyTrainedEpochs += freezeNoEpochs + noFreezeNoEpochs
         config.preTrainedModelPath = config.getModelPath()
         config.loadPreTrained = True
-        config.save()
-        config.saveText()
+        saveConfiguration(config)
         # Further training if needed.
         print("Finished training!")
 

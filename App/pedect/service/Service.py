@@ -1,5 +1,6 @@
 from typing import *
 
+from pedect.config.BasicConfig import saveConfiguration
 from pedect.converter.ConverterToImages import ConverterToImagesYOLOv3
 from pedect.evaluator.HyperParametersTuner import *
 from pedect.generator.NewDataGenerator import NewDataGenerator
@@ -22,9 +23,21 @@ class Service:
         self.trainer = YOLOTrainer(config)
         self.converter = ConverterToImagesYOLOv3(self.imgSaveTextPattern)
 
+    def getTrainingVideoList(self):
+        return self.splitIntoBatches()[0]
+
+    def getEvaluationVideoList(self):
+        return self.splitIntoBatches()[1]
+
+    def getTuningVideoList(self):
+        return self.splitIntoBatches()[2]
+
+    def getGenerationVideoList(self):
+        return self.splitIntoBatches()[3]
+
     def prepareTrainingSet(self, trainingList: Sequence[Tuple[str, str, str]] = None) -> None:
         if trainingList is None:
-            trainingList = self.splitIntoBatches()[0]
+            trainingList = self.getTrainingVideoList()
         print("Training list is ", trainingList)
         self.converter.clearDirectory()
         for video in trainingList:
@@ -32,22 +45,24 @@ class Service:
         self.converter.writeAnnotationsFile()
 
     def train(self) -> None:
+        self.trainer.config = self.config
         self.trainer.train()
 
-    def evaluatePredictor(self, videosList: Sequence[Tuple[str, str, str]] = None, noFrames: int = MAX_VIDEO_LENGTH, withPartialOutput: bool = False) -> float:
+
+    def evaluatePredictor(self, config, videosList: Sequence[Tuple[str, str, str]] = None, noFrames: int = MAX_VIDEO_LENGTH, withPartialOutput: bool = False) -> dict:
         if videosList is None:
-            videosList = self.splitIntoBatches()[1]
-        gtPredictors = findGroundTruthFromVideoList(videosList)
-        yoloPredictors = [YOLOPredictor(gtPredictor, self.config) for gtPredictor in gtPredictors]
+            videosList = self.getEvaluationVideoList()
         evaluator = Evaluator(noFrames)
-        [evaluator.addEvaluation(predictor, groundTruthPredictor, withPartialOutput)
-         for predictor, groundTruthPredictor in zip(yoloPredictors, gtPredictors)]
+        for datasetName, setName, videoName in videosList:
+            gtPredictor = GroundTruthPredictor(datasetName, setName, videoName)
+            yoloPredictor = YOLOPredictor(gtPredictor, config)
+            evaluator.addEvaluation(yoloPredictor, gtPredictor, withPartialOutput)
         result = evaluator.evaluate()
         return result
 
-    def optimizeTrackerConfig(self, fileName, trackerTypes, ctRange: Tuple[float, float], rtRange: Tuple[float, float], stRange: Tuple[float, float], smpRange: Tuple[float, float], mspRange: Tuple[float, float], videosList: Sequence[Tuple[str, str, str]] = None, noIterations: int = 100, noFrames: int=30, withPartialOutput: bool = False, rangeSize: int = None) -> None:
+    def optimizeTrackerConfig(self, fileName, trackerTypes, ctRange: Tuple[float, float], rtRange: Tuple[float, float], stRange: Tuple[float, float], smpRange: Tuple[float, float], mspRange: Tuple[float, float], videosList: Sequence[Tuple[str, str, str]] = None, noIterations: int = None, noFrames: int=30, withPartialOutput: bool = False, rangeSize: int = None):
         if videosList is None:
-            videosList = self.splitIntoBatches()[2]
+            videosList = self.getTuningVideoList()
         print("Working on ", videosList)
         baseDir = 'results'
         keys = ["trackerType", "createThreshold", "removeThreshold", "surviveThreshold", "surviveMovePercent", "minScorePrediction"]
@@ -64,10 +79,13 @@ class Service:
         floatPattern = '{:18f}'
         bar = " | "
         f.write((stringPattern + (bar + stringPattern)*(len(titles) - 1) + "\n").format(*titles))
+        answer = []
         for result in results:
             params = ([result[0].getTrackingHyperParameters()[x] for x in keys] + [result[1][metric] for metric in evaluations])
+            answer.append(params)
             f.write((stringPattern + (bar + floatPattern)*(len(titles) - 1) + "\n").format(*params))
         f.close()
+        return titles, answer
 
 
 
@@ -82,7 +100,7 @@ class Service:
 
     def generateNewData(self, videoList: Sequence[Tuple[str, str, str]] = None, verbose: bool = False, nrFrames: int = MAX_VIDEO_LENGTH) -> None:
         if videoList is None:
-            videoList = self.splitIntoBatches()[3]
+            videoList = self.getGenerationVideoList()
 
         NewDataGenerator.initializeDirectory(self.config.imageGenerationSavePath)
         gtPredictors = findGroundTruthFromVideoList(videoList)
@@ -136,5 +154,28 @@ class Service:
         times = list(TH.getTimes())
         stimes = sum(times)
         return [int(100 * x / stimes) / 100 for x in times]
+
+    def getAllTrainIds(self):
+        path = os.path.join(MODELS_DIR)
+        trainIdsList = os.listdir(path)
+        rez = []
+        for trainId in trainIdsList:
+            try:
+                x = int(trainId)
+                rez.append(x)
+            except ValueError:
+                pass
+
+        return sorted(rez)
+
+    @staticmethod
+    def createNewTrainingConfiguration(trainId):
+        config = BasicConfig()
+        config.trainId = trainId
+        saveConfiguration(config)
+
+    @staticmethod
+    def getAllAvailableTrackerTypes():
+        return ["csrt", "kcf", "boosting", "mil", "tld", "medianflow", "mosse"]
 
 

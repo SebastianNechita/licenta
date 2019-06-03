@@ -34,11 +34,11 @@ class HyperParametersTuner:
             original = (config.trackerType, config.createThreshold, config.removeThreshold, config.surviveThreshold,
                         config.surviveMovePercent, config.minScorePrediction)
             unaffected = ("fake", 0.0, 0.0, 1.0, 1.0, 0.0)
-            hpGenerator = HPGenerator([unaffected, original], [trackerTypes, ctRange, rtRange, stRange, smpRange, mspRange])
+            hpGenerator = HPGenerator([unaffected, original], [trackerTypes, ctRange, rtRange, stRange, smpRange, mspRange], noIterations)
         else:
-            hpGenerator = LinearHPGenerator([trackerTypes, ctRange, rtRange, stRange, smpRange, mspRange], rangeSize)
+            hpGenerator = LinearHPGenerator([trackerTypes, ctRange, rtRange, stRange, smpRange, mspRange], rangeSize, noIterations)
         executionList = []
-        toIterate = range(noIterations)
+        toIterate = range(hpGenerator.getNumberOfIterations())
         extraTracker = getTrackerFromConfig(config)
         evaluators = []
         configurations = []
@@ -86,9 +86,10 @@ class HyperParametersTuner:
         return executionList
 
 class HPGenerator:
-    def __init__(self, initialTries: Sequence, ranges: Sequence[tuple]):
+    def __init__(self, initialTries: Sequence, ranges: Sequence[tuple], noIterations: int):
         self.initialTries = initialTries
         self.ranges = ranges
+        self.noIterations = noIterations if noIterations is not None else len(self.initialTries)
 
     def getNextRange(self):
         if len(self.initialTries) != 0:
@@ -105,12 +106,15 @@ class HPGenerator:
                 print("No known hyperParameter type to choose from!")
         return tuple(result)
 
+    def getNumberOfIterations(self):
+        return self.noIterations
+
 class LinearHPGenerator(HPGenerator):
 
     def __updateToRange(self, number: float, rng: Tuple[float, float]):
         return int(100 * (rng[0] + (rng[1] - rng[0]) * number)) / 100.0
 
-    def __init__(self, ranges: Sequence[tuple], gridSize: int):
+    def __init__(self, ranges: Sequence[tuple], gridSize: int, noIterations: int):
         assert gridSize > 1
         initialTries = []
         rn = [float(i / (gridSize - 1)) for i in range(gridSize)]
@@ -138,7 +142,7 @@ class LinearHPGenerator(HPGenerator):
 
 
         print(len(initialTries))
-        super().__init__(initialTries, ranges)
+        super().__init__(initialTries, ranges, noIterations)
 
 
 

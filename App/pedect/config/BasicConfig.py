@@ -96,8 +96,14 @@ class BasicConfig:
             res += "%s = %s\n" % (k, str(v))
         return res
 
+def saveConfiguration(config: BasicConfig):
+    models_dir = os.path.join(MODELS_DIR, config.trainId)
+    if not os.path.exists(models_dir):
+        os.makedirs(models_dir)
+    config.save()
+    config.saveText()
 
-def getConfig(fileName = ""):
+def getConfig(fileName = "") -> BasicConfig:
     try:
         f = open(fileName, "rb")
         result = pickle.load(f)
@@ -106,7 +112,7 @@ def getConfig(fileName = ""):
     except IOError:
         return None
 
-def getConfigFromTrainId(trainId):
+def getConfigFromTrainId(trainId) -> BasicConfig:
     return getConfig(os.path.join(MODELS_DIR, str(trainId), "config.pickle"))
 
 def getSavedConfigIfExists(config: BasicConfig):
