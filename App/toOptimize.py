@@ -31,7 +31,7 @@ print("Tracker type is", config.trackerType)
 service = Service(config)
 emptyDirectory(TEMP_FOLDER)
 # trackerTypes = ["cached kcf"]
-trackerTypes = ["cached mil", "cached mosse", "cached csrt", "cached medianflow", "cached kcf", "cached fake"]
+trackerTypes = ["cached mosse", "cached csrt", "cached medianflow", "cached kcf", "cached fake"]
 # trackerTypes = ["cached fake"]
 ctRange = (0.0, 0.4)
 rtRange = (0.0, 0.8)
@@ -45,7 +45,7 @@ maxAgeRange = None
 # videosList = [("caltech", "set01", "V004")]
 # videosList = [("caltech", "set03", "V009")]
 videosList = None
-stepSize = 0.2
+stepSize = 0.01
 service.optimizeTrackerConfig("a.txt", trackerTypes, ctRange, rtRange, stRange, smpRange, mspRange, videosList, None, MAX_VIDEO_LENGTH, True, stepSize, maxAgeRange)
 # service.optimizeTrackerConfig("cached medianflow.txt", [trackerTypes[0]], ctRange, rtRange, stRange, smpRange, mspRange, videosList, rangeSize ** howMany, 600, True, rangeSize)
 # service.optimizeTrackerConfig("medianflow.txt", [trackerTypes[1]], ctRange, rtRange, stRange, smpRange, mspRange, videosList, rangeSize ** howMany, 600, True, rangeSize)
