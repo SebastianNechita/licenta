@@ -87,6 +87,8 @@ class GenerationController:
                 self.service.playVideo(videoTuple, config)
         except Exception as e:
             showError(str(e))
+            traceback.print_exc()
+
 
 
 

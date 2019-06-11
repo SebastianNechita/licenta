@@ -1,10 +1,12 @@
+import pickle
 import random
 import time
 from typing import Sequence
+import uuid
 
 from pedect.predictor.GroundTruthPredictor import GroundTruthPredictor
 from pedect.predictor.Predictor import Predictor
-from pedect.utils.constants import MAX_VIDEO_LENGTH
+from pedect.utils.constants import MAX_VIDEO_LENGTH, TEMP_FOLDER
 from tqdm import tqdm
 import glob
 import json
@@ -16,25 +18,10 @@ import math
 
 import numpy as np
 
-class EvaluatorMemoryManager:
-    existentValues = {}
-    existentValuesReverse = []
-
-    @staticmethod
-    def encodeLabel(val):
-        if val not in EvaluatorMemoryManager.existentValues:
-            EvaluatorMemoryManager.existentValues[val] = len(EvaluatorMemoryManager.existentValues)
-            EvaluatorMemoryManager.existentValuesReverse.append(val)
-        return EvaluatorMemoryManager.existentValues[val]
-
-    @staticmethod
-    def decodeLabel(val):
-        return EvaluatorMemoryManager.existentValuesReverse[val]
-
-
 class Evaluator:
     def __init__(self, maxFrames: int = MAX_VIDEO_LENGTH):
         self.maxFrames = maxFrames
+        self.filePath = os.path.join(TEMP_FOLDER, str(uuid.uuid4()))
         self.computed = False
         self.result = 0
         self.predictedDict = {}
@@ -42,7 +29,17 @@ class Evaluator:
         self.counter = 0
         self.elapsedTime = 0
 
+    def writeValuesToFile(self):
+        f = open(self.filePath, 'wb+')
+        pickle.dump((self.predictedDict, self.gtDict), f)
+        f.close()
+        self.predictedDict = None
+        self.gtDict = None
 
+    def readValuesFromFile(self):
+        f = open(self.filePath, "rb")
+        (self.predictedDict, self.gtDict) = pickle.load(f)
+        f.close()
 
     def addEvaluation(self, predictor: Predictor, groundTruthPredictor: GroundTruthPredictor, verbose: bool):
         start = time.time()
@@ -51,30 +48,37 @@ class Evaluator:
         rangeToIterate = range(min(groundTruthPredictor.getLength(), self.maxFrames))
         if verbose:
             rangeToIterate = tqdm(rangeToIterate)
+        if self.gtDict is None:
+            self.readValuesFromFile()
+
         for frameNr in rangeToIterate:
             groundTruthObjects = groundTruthPredictor.predictForFrame(frameNr)
             predictedObjects = predictor.predictForFrame(frameNr)
-            self.gtDict[self.counter] = EvaluatorMemoryManager.encodeLabel(tuple([(o.getLabel(), o.getX1(), o.getY1(), o.getX2(), o.getY2())
-                                                                                   for o in groundTruthObjects]))
-            self.predictedDict[self.counter] = EvaluatorMemoryManager.encodeLabel(tuple([(o.getLabel(), o.getProb(), o.getX1(), o.getY1(), o.getX2(), o.getY2())
-                                      for o in predictedObjects]))
+            self.gtDict[self.counter] = [(o.getLabel(), o.getX1(), o.getY1(), o.getX2(), o.getY2()) for o in groundTruthObjects]
+            self.predictedDict[self.counter] = [(o.getLabel(), o.getProb(), o.getX1(), o.getY1(), o.getX2(), o.getY2())
+                                                for o in predictedObjects]
             self.counter = self.counter + 1
         random.setstate(s)
+        self.writeValuesToFile()
         self.elapsedTime += time.time() - start
 
 
     def evaluate(self):
+        self.readValuesFromFile()
         start = time.time()
         memory = get_size(self.predictedDict) + get_size(self.gtDict)
 
-        for k, v in self.gtDict.items():
-            self.gtDict[k] = EvaluatorMemoryManager.decodeLabel(v)
-        for k, v in self.predictedDict.items():
-            self.predictedDict[k] = EvaluatorMemoryManager.decodeLabel(v)
+        # for k, v in self.gtDict.items():
+        #     self.gtDict[k] = EvaluatorMemoryManager.decodeLabel(v)
+        # for k, v in self.predictedDict.items():
+        #     self.predictedDict[k] = EvaluatorMemoryManager.decodeLabel(v)
 
         mAP = findMaPModified(self.predictedDict, self.gtDict)
         GTmAP = findGTmAP(self.predictedDict, self.gtDict)
         self.elapsedTime += time.time() - start
+        self.predictedDict = None
+        self.gtDict = None
+        os.remove(self.filePath)
         return {"mAP": mAP, "Elapsed time": self.elapsedTime, "GTmAP": GTmAP, "Memory": memory}
 
 

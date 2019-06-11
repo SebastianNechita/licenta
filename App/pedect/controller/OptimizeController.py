@@ -113,12 +113,12 @@ class OptimizeController:
                 trackerTypeList = ["cached %s" % x for x in trackerTypeList]
 
             maxNoFrames = int(self.maxNoFramesTextBox.text())
-            stepSize = int(self.stepSizeTextBox.text())
+            stepSize = between0And1(float(self.stepSizeTextBox.text()))
             trainId = self.trainIdsController.getSelectedTrainId()
             config = getConfigFromTrainId(trainId)
             self.service.config = config
             titles, rows = self.service.optimizeTrackerConfig("temp.txt", trackerTypeList, ctRange, rtRange, stRange,
-                                                              smpRange, mspRange, videoList, None, maxNoFrames, False,
+                                                              smpRange, mspRange, videoList, None, maxNoFrames, True,
                                                               stepSize)
             self.bestConfigurationsListViewModel.removeRows(0, self.bestConfigurationsListViewModel.rowCount())
             self.bestConfigurationsListViewModel.setHorizontalHeaderLabels(titles)

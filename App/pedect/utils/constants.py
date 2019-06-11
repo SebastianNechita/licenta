@@ -17,6 +17,7 @@ YOLO_DIR = os.path.join(BASE_DIR, 'keras-yolo3')
 
 IMAGE_GENERATION_SAVE_PATH = os.path.join(IMAGES_DIR, "predicted")
 TEMP_IMAGES_FOLDER = os.path.join(IMAGES_DIR, "temp")
+TEMP_FOLDER = os.path.join(BASE_DIR, ".temp")
 
 MAX_VIDEO_LENGTH = 10000000
 MAX_WORKERS = 8  # for parallelization

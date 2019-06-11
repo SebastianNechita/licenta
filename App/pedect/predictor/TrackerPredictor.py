@@ -18,46 +18,59 @@ class TrackerPredictor(Predictor):
         self.activeObjects = {}
 
     def predictForFrame(self, frameNr: int):
+        debug = False
+        printd(frameNr, debug)
         image = self.videoHolder.getFrame(frameNr)  # predictor.getFrame(frameNr)
         start = time.time()
-        printd("Start A")
+        printd("Start A", debug)
         imageHash = hash("%s-%s-%s-%s" % (self.videoHolder.chosenDataset, self.videoHolder.setName,
                                   self.videoHolder.videoNr, frameNr))
         self.activeObjects = refreshTrackedObjects(self.tracker, image, self.activeObjects, imageHash)
-        printd("End A")
+        printd(len(self.activeObjects), debug)
+        printd("End A", debug)
 
         TH.time0 += time.time() - start
         start = time.time()
-        printd("Start B")
+        printd("Start B", debug)
         predictedBBoxes = self.predictor.predictForFrame(frameNr)
-        printd("End B")
+        printd({k: str(v.getPos()) for k, v in self.activeObjects.items()}, debug)
+
+        printd("End B", debug)
 
         TH.time1 += time.time() - start
         start = time.time()
-        printd("Start C")
+        printd("Start C", debug)
 
         self.activeObjects, probabilitiesDictionary = moveOrDestroyTrackedObjects(self.activeObjects, predictedBBoxes,
                                                                                   self.config.surviveMovePercent,
                                                                                   self.config.surviveThreshold,
                                                                                   self.config.maxNrOfObjectsPerFrame)
-        printd("End C")
+        printd({k: str(v.getPos()) for k, v in self.activeObjects.items()}, debug)
+
+        printd(len(self.activeObjects), debug)
+
+        printd("End C", debug)
 
         TH.time2 += time.time() - start
         start = time.time()
-        printd("Start D")
+        printd("Start D", debug)
 
         self.activeObjects = createAndDestroyTrackedObjects(self.tracker, image, self.activeObjects, predictedBBoxes,
                                                             self.config.createThreshold, self.config.removeThreshold,
                                                             frameNr, probabilitiesDictionary, imageHash)
+        printd(len(self.activeObjects), debug)
+
         # print(probabilitiesDictionary)
-        printd("End D")
+        printd("End D", debug)
 
         TH.time3 += time.time() - start
         start = time.time()
-        printd("Start E")
+        printd("Start E", debug)
 
         self.activeObjects = removeOldObjects(self.activeObjects, frameNr, self.config.maxAge)
-        printd("End E")
+        printd(len(self.activeObjects), debug)
+        printd("MaxAge = %d" % self.config.maxAge, debug)
+        printd("End E", debug)
 
         TH.time4 += time.time() - start
         return [PredictedBox(int(v.getPos()[0] + 0.5), int(v.getPos()[1] + 0.5), int(v.getPos()[2] + 0.5),
@@ -70,7 +83,6 @@ class TrackerPredictor(Predictor):
     #     self.activeObjects = {}
 
 
-def printd(a):
-    DEBUG = False
-    if DEBUG:
+def printd(a, debug):
+    if debug:
         print(a)

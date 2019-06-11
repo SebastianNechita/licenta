@@ -2,10 +2,11 @@ import copy
 import random
 from typing import Sequence, Tuple
 
+from numpy.ma import arange
 from tqdm import tqdm
 
 from pedect.config.BasicConfig import BasicConfig
-from pedect.evaluator.Evaluator import Evaluator, get_size, EvaluatorMemoryManager
+from pedect.evaluator.Evaluator import Evaluator, get_size
 from pedect.predictor.GroundTruthPredictor import GroundTruthPredictor
 from pedect.predictor.MinScoreWrapperPredictor import MinScoreWrapperPredictor
 from pedect.predictor.TrackerPredictor import TrackerPredictor
@@ -28,15 +29,18 @@ class HyperParametersTuner:
         evaluator.addEvaluation(predictor, gtPredictor, withPartialOutput)
 
     @staticmethod
-    def tryToFindBestConfig(config: BasicConfig, videosList: Sequence[Tuple[str, str, str]], noIterations: int, trackerTypes: Sequence[str], ctRange: tuple, rtRange: tuple, stRange: tuple, smpRange: tuple, mspRange: tuple, maxFrames: int = MAX_VIDEO_LENGTH, withPartialOutput: bool = False, rangeSize: int = None):
+    def tryToFindBestConfig(config: BasicConfig, videosList: Sequence[Tuple[str, str, str]], noIterations: int, trackerTypes: Sequence[str], ctRange: tuple, rtRange: tuple, stRange: tuple, smpRange: tuple, mspRange: tuple, maxFrames: int = MAX_VIDEO_LENGTH, withPartialOutput: bool = False, stepSize: float = None,
+                            maxAgeRange: Sequence[int] = None):
+        if maxAgeRange is None:
+            maxAgeRange = [100]
         yoloEvaluator = Evaluator(maxFrames)
-        if rangeSize is None:
+        if stepSize is None:
             original = (config.trackerType, config.createThreshold, config.removeThreshold, config.surviveThreshold,
                         config.surviveMovePercent, config.minScorePrediction)
             unaffected = ("fake", 0.0, 0.0, 1.0, 1.0, 0.0)
-            hpGenerator = HPGenerator([unaffected, original], [trackerTypes, ctRange, rtRange, stRange, smpRange, mspRange], noIterations)
+            hpGenerator = HPGenerator([unaffected, original], [trackerTypes, ctRange, rtRange, stRange, smpRange, mspRange, maxAgeRange], noIterations)
         else:
-            hpGenerator = LinearHPGenerator([trackerTypes, ctRange, rtRange, stRange, smpRange, mspRange], rangeSize, noIterations)
+            hpGenerator = LinearHPGenerator([trackerTypes, ctRange, rtRange, stRange, smpRange, mspRange, maxAgeRange], stepSize, noIterations)
         executionList = []
         toIterate = range(hpGenerator.getNumberOfIterations())
         extraTracker = getTrackerFromConfig(config)
@@ -48,7 +52,7 @@ class HyperParametersTuner:
             evaluators.append(Evaluator(maxFrames))
             newConfig = copy.deepcopy(config)
             newConfig.trackerType, newConfig.createThreshold, newConfig.removeThreshold, newConfig.surviveThreshold, \
-            newConfig.surviveMovePercent, newConfig.minScorePrediction = r
+            newConfig.surviveMovePercent, newConfig.minScorePrediction, newConfig.maxAge = r
             # tracker = getTrackerFromConfig(newConfig)
             configurations.append(newConfig)
             # trackers.append(tracker)
@@ -70,6 +74,7 @@ class HyperParametersTuner:
                 else:
                     executionList.append(executor.submit(HyperParametersTuner.__findAnswerForConfig, newConfig,
                                                                      tracker, gtPredictor, evaluator, withPartialOutput))
+            CachingTrackerManager.clearAllCache()
         result = yoloEvaluator.evaluate()
         print("YoloPredictor ", " ---> ", result)
         if extraTracker.parallelizable():
@@ -78,8 +83,8 @@ class HyperParametersTuner:
         executionList.clear()
         for i in tqdm(toIterate):
             executionList.append((configurations[i], evaluators[i].evaluate()))
-        print("Memory in GB:", (get_size(EvaluatorMemoryManager.existentValuesReverse) + get_size(
-            EvaluatorMemoryManager.existentValues) + get_size(evaluators)) / (1024 ** 3))
+        # print("Memory in GB:", (get_size(EvaluatorMemoryManager.existentValuesReverse) + get_size(
+        #     EvaluatorMemoryManager.existentValues) + get_size(evaluators)) / (1024 ** 3))
         executionList.sort(key=lambda x: (x[1]["mAP"]), reverse=True)
         # executionList = executionList[:min(len(executionList), 100)]
         # [print(str(config.getTrackingHyperParameters()), " ---> ", result) for config, result in executionList]
@@ -114,31 +119,30 @@ class LinearHPGenerator(HPGenerator):
     def __updateToRange(self, number: float, rng: Tuple[float, float]):
         return int(100 * (rng[0] + (rng[1] - rng[0]) * number)) / 100.0
 
-    def __init__(self, ranges: Sequence[tuple], gridSize: int, noIterations: int):
-        assert gridSize > 1
+    def __init__(self, ranges: Sequence[tuple], stepSize: float, noIterations: int):
+        assert 0.0 < stepSize <= 1.0
+        cnt = 20
         initialTries = []
-        rn = [float(i / (gridSize - 1)) for i in range(gridSize)]
-        emptyRange = [0.0]
-        rns = []
-        for i in range(1, 6):
-            if ranges[i][0] == ranges[i][1]:
-                rns.append(emptyRange)
-            else:
-                rns.append(rn)
         for aa in ranges[0]:
-            for a in rns[0]:
-                for b in rns[1]:
-                    for c in rns[2]:
-                        for d in rns[3]:
-                            for e in rns[4]:
-                                a1 = self.__updateToRange(a, ranges[1])
-                                b1 = self.__updateToRange(b, ranges[2])
-                                c1 = self.__updateToRange(c, ranges[3])
-                                d1 = self.__updateToRange(d, ranges[4])
-                                e1 = self.__updateToRange(e, ranges[5])
-                                configTry = (aa, a1, b1, c1, d1, e1)
-                                initialTries.append(configTry)
-                                # print(configTry)
+            for a in arange(ranges[1][0], ranges[1][1] + stepSize/2, stepSize):
+                for b in arange(ranges[2][0], ranges[2][1] + stepSize/2, stepSize):
+                    for c in arange(ranges[3][0], ranges[3][1] + stepSize/2, stepSize):
+                        for d in arange(ranges[4][0], ranges[4][1] + stepSize/2, stepSize):
+                            for e in arange(ranges[5][0], ranges[5][1] + stepSize/2, stepSize):
+                                for f in ranges[6]:
+                                    # a1 = self.__updateToRange(a, ranges[1])
+                                    # b1 = self.__updateToRange(b, ranges[2])
+                                    # c1 = self.__updateToRange(c, ranges[3])
+                                    # d1 = self.__updateToRange(d, ranges[4])
+                                    # e1 = self.__updateToRange(e, ranges[5])
+                                    # configTry = (aa, a1, b1, c1, d1, e1)
+                                    configTry = (aa, a, b, c, d, e, f)
+                                    initialTries.append(configTry)
+                                    cnt = cnt - 1
+                                    if cnt >= 0:
+                                        print(configTry)
+                                    if cnt == 0:
+                                        print("......")
 
 
         print(len(initialTries))

@@ -86,7 +86,8 @@ class BasicConfig:
             "removeThreshold": self.removeThreshold,
             "surviveThreshold": self.surviveThreshold,
             "surviveMovePercent": self.surviveMovePercent,
-            "minScorePrediction": self.minScorePrediction
+            "minScorePrediction": self.minScorePrediction,
+            "maxAge": self.maxAge
         }
 
     def __str__(self):

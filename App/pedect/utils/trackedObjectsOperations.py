@@ -1,6 +1,7 @@
 import math
 from typing import Tuple
 
+from pedect.predictor.PredictedBox import PredictedBox
 from pedect.utils.IdGenerator import IdGenerator
 from pedect.utils.metrics import IOU
 from pedect.utils.parallel import executor
@@ -30,7 +31,8 @@ class TrackedObject:
 
 
 def refreshTrackedObjects(tracker, image, activeObjects: dict, imageHash = None):
-    imageRGB = image[:, :, ::-1]
+    imageRGB = image
+    # imageRGB = image[:, :, ::-1]
     # toRun = []
     # if tracker.parallelizable():
     #     for k, v in activeObjects.items():
@@ -39,7 +41,9 @@ def refreshTrackedObjects(tracker, image, activeObjects: dict, imageHash = None)
     #         activeObjects[k].setPos(future.result())
     # else:
     newPositions = tracker.trackAll(activeObjects.keys(), imageRGB, imageHash)
-    [activeObjects[k].setPos(v) for k, v in newPositions.items()]
+    activeObjects = {k: v for k, v in activeObjects.items() if newPositions[k] != (0, 0, 0, 0)}
+    [activeObjects[k].setPos(v) for k, v in newPositions.items() if newPositions[k] != (0, 0, 0, 0)]
+
     # for k, v in activeObjects.items():
     #     activeObjects[k].setPos(tracker.track(k, imageRGB))
     return activeObjects
@@ -53,27 +57,25 @@ def positionBetween(b1: tuple, b2: tuple, percent: float) -> tuple:
 def moveOrDestroyTrackedObjects(activeObjects, predictedBBoxes, surviveMovePercent, surviveThreshold, maxNrOfObjectsPerFrame):
     objectsProbabilities = {}
     if len(predictedBBoxes) == 0:
-        activeObjects = {}
-    else:
-        survivingObjects = {}
-        accurateList = []
-        for activeId, v in sorted(activeObjects.items(), key=lambda ob: int(ob[0])):
-            # print(activeId, v)
-            intersections = [IOU(v.getPos(), predBox.getPos()) * predBox.getProb() if v.getLabel() == predBox.getLabel() else 0
-                             for predBox in predictedBBoxes]
-            maxValue = max(intersections)
-            bestPos = intersections.index(maxValue)
-            predBox = predictedBBoxes[bestPos].getPos()
-            if intersections[bestPos] >= surviveThreshold:
-                survivingObjects[activeId] = v
-                accurateList.append((maxValue, activeId))
-                objectsProbabilities[activeId] = maxValue
-                v.setPos(positionBetween(predBox, v.getPos(), surviveMovePercent))
-        if len(accurateList) > maxNrOfObjectsPerFrame:
-            accurateList = accurateList[:maxNrOfObjectsPerFrame]
-        accurateList = [x[1] for x in accurateList]
-        activeObjects = {k: survivingObjects[k] for k in accurateList}
-        assert len(activeObjects) <= maxNrOfObjectsPerFrame
+        predictedBBoxes = [PredictedBox(0, 0, 0, 0, "nothing", -1.0)]
+    survivingObjects = {}
+    accurateList = []
+    for activeId, v in sorted(activeObjects.items(), key=lambda ob: int(ob[0])):
+        intersections = [IOU(v.getPos(), predBox.getPos()) * predBox.getProb() if v.getLabel() == predBox.getLabel() else 0
+                         for predBox in predictedBBoxes]
+        maxValue = max(intersections)
+        bestPos = intersections.index(maxValue)
+        predBox = predictedBBoxes[bestPos].getPos()
+        if intersections[bestPos] >= surviveThreshold:
+            survivingObjects[activeId] = v
+            accurateList.append((maxValue, activeId))
+            objectsProbabilities[activeId] = maxValue
+            v.setPos(positionBetween(predBox, v.getPos(), surviveMovePercent))
+    if len(accurateList) > maxNrOfObjectsPerFrame:
+        accurateList = accurateList[:maxNrOfObjectsPerFrame]
+    accurateList = [x[1] for x in accurateList]
+    activeObjects = {k: survivingObjects[k] for k in accurateList}
+    assert len(activeObjects) <= maxNrOfObjectsPerFrame
     return activeObjects, objectsProbabilities
 
 
@@ -83,8 +85,6 @@ def createAndDestroyTrackedObjects(tracker, image, activeObjects, predictedBBoxe
     for predBox in predictedBBoxes:
         box = predBox.getPos()
         prob = predBox.getProb()
-        # print(predBox.getPos(), prob, box)
-        # print(createThreshold, removeThreshold, frameNr)
         if prob >= createThreshold:
             newId = IdGenerator.getStringId()
             activeObjects = {k: v for k, v in sorted(activeObjects.items(), key=lambda ob: int(ob[0]))

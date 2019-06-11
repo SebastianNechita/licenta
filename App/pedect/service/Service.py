@@ -56,12 +56,12 @@ class Service:
         result = evaluator.evaluate()
         return result
 
-    def optimizeTrackerConfig(self, fileName, trackerTypes, ctRange: Tuple[float, float], rtRange: Tuple[float, float], stRange: Tuple[float, float], smpRange: Tuple[float, float], mspRange: Tuple[float, float], videosList: Sequence[Tuple[str, str, str]] = None, noIterations: int = None, noFrames: int=30, withPartialOutput: bool = False, rangeSize: int = None):
+    def optimizeTrackerConfig(self, fileName, trackerTypes, ctRange: Tuple[float, float], rtRange: Tuple[float, float], stRange: Tuple[float, float], smpRange: Tuple[float, float], mspRange: Tuple[float, float], videosList: Sequence[Tuple[str, str, str]] = None, noIterations: int = None, noFrames: int=30, withPartialOutput: bool = False, stepSize: float = None, maxAgeRange: Sequence[int] = None):
         if videosList is None:
             videosList = self.getTuningVideoList()
         print("Working on ", videosList)
         baseDir = 'results'
-        keys = ["trackerType", "createThreshold", "removeThreshold", "surviveThreshold", "surviveMovePercent", "minScorePrediction"]
+        keys = ["trackerType", "createThreshold", "removeThreshold", "surviveThreshold", "surviveMovePercent", "minScorePrediction", "maxAge"]
         evaluations = ['mAP', "Elapsed time", "GTmAP", "Memory"]
         titles = keys + evaluations
         # keys = keys + evaluations
@@ -69,7 +69,7 @@ class Service:
         results = HyperParametersTuner.tryToFindBestConfig(self.config, videosList,
                                                            noIterations, trackerTypes,
                                                            ctRange, rtRange, stRange, smpRange, mspRange,
-                                                           noFrames, withPartialOutput, rangeSize)
+                                                           noFrames, withPartialOutput, stepSize, maxAgeRange)
         f = open(os.path.join(baseDir, fileName), "w")
         stringPattern = '{:18s}'
         floatPattern = '{:18f}'
@@ -91,7 +91,12 @@ class Service:
         gtPredictor = GroundTruthPredictor(video[0], video[1], video[2])
         yoloPredictor = YOLOPredictor(gtPredictor, config)
         trackerPredictor = TrackerPredictor(yoloPredictor, gtPredictor, getTrackerFromConfig(config), config)
-        playVideo([(yoloPredictor, [0, 255, 0]), (gtPredictor, [255, 0, 0]), (trackerPredictor, [0, 0, 255])],
+        trackerPredictor = MinScoreWrapperPredictor(trackerPredictor, config.minScorePrediction)
+        RED = [0, 0, 255]
+        GREEN = [0, 255, 0]
+        BLUE = [255, 0, 0]
+        print(config)
+        playVideo([(yoloPredictor, RED), (gtPredictor, GREEN), (trackerPredictor, BLUE)],
                   gtPredictor, nrFrames)
 
     def generateNewData(self, config: BasicConfig, videoList: Sequence[Tuple[str, str, str]] = None, verbose: bool = False, nrFrames: int = MAX_VIDEO_LENGTH) -> None:
