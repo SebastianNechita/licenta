@@ -45,7 +45,7 @@ maxAgeRange = None
 # videosList = [("caltech", "set01", "V004")]
 # videosList = [("caltech", "set03", "V009")]
 videosList = None
-stepSize = 0.05
+stepSize = 0.2
 service.optimizeTrackerConfig("a.txt", trackerTypes, ctRange, rtRange, stRange, smpRange, mspRange, videosList, None, MAX_VIDEO_LENGTH, True, stepSize, maxAgeRange)
 # service.optimizeTrackerConfig("cached medianflow.txt", [trackerTypes[0]], ctRange, rtRange, stRange, smpRange, mspRange, videosList, rangeSize ** howMany, 600, True, rangeSize)
 # service.optimizeTrackerConfig("medianflow.txt", [trackerTypes[1]], ctRange, rtRange, stRange, smpRange, mspRange, videosList, rangeSize ** howMany, 600, True, rangeSize)

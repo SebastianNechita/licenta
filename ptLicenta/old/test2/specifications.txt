@@ -1,0 +1,11 @@
+Ran on all frames, 6 videos
+Ranges:
+[["cached tld", "cached mosse", "cached csrt", "cached medianflow", "cached kcf", "cached mil", "cached fake"],
+[0.0, 0.4],
+[0.0, 0.8],
+[0.0, 0.0],
+[0.0, 0.0],
+[0.0, 0.0]]
+
+Step size = 9
+Yolo predictor = 0.03660161043143322

@@ -1,0 +1,4 @@
+from 0 to 2000 step = 5
+cam 1h 40 min
+
+1604 configurations

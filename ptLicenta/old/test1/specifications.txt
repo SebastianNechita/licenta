@@ -1,0 +1,11 @@
+ran on 500 frames, 6 videos
+ranges: 
+[['cached fake', 'cached csrt', 'cached kcf', 'cached medianflow', 'cached mil', 'cached mosse', 'cached tld']
+[0.0, 1.0], 
+[0.0, 1.0], 
+[0.0, 1.0], 
+[0.0, 1.0], 
+[0.0, 1.0]]
+
+Step size = 0.2
+YOLO tracker alone = 0.05240660506730084

@@ -1,0 +1,15 @@
+ran on videos of full length -> 6 videos
+ranges:
+[["cached csrt", "cached medianflow", "cached kcf", "cached fake"],
+[0.0, 0.2],
+[0.0, 0.8],
+[0.0, 0.0],
+[0.0, 0.6],
+[0.0, 0.0]]
+
+we removed mosse and mil
+around 4:20h
+4420 run configurations
+
+Step size = 0.05
+YOLO tracker alone = 0.03660161043143322
