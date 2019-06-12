@@ -1,0 +1,17 @@
+ran on videos of full length -> 6 videos
+ranges: 
+[['cached fake', 'cached kcf'],
+[0.0, 0.0], 
+[0.4, 0.5], 
+[0.0, 0.0], 
+[0.0, 0.0], 
+[0.0, 0.0],
+[0, 10, ..., 2001]
+]
+
+we removed mil
+time around 3:30 h
+4422 run configurations
+
+Step size = 0.01
+YOLO tracker alone = 0.03660161043143322

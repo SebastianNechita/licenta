@@ -31,16 +31,16 @@ print("Tracker type is", config.trackerType)
 service = Service(config)
 emptyDirectory(TEMP_FOLDER)
 # trackerTypes = ["cached kcf"]
-trackerTypes = ["cached mosse", "cached csrt", "cached medianflow", "cached kcf", "cached fake"]
+trackerTypes = ["cached kcf", "cached fake"]
 # trackerTypes = ["cached fake"]
-ctRange = (0.0, 0.4)
-rtRange = (0.0, 0.8)
+ctRange = (0.0, 0.0)
+rtRange = (0.4, 0.5)
 stRange = (0.0, 0.0)
 smpRange = (0.0, 0.0)
 mspRange = (0.0, 0.0)
 ranges = [ctRange, rtRange, stRange, smpRange, mspRange]
-# maxAgeRange = [x for x in range(0, 2001, 5)]
-maxAgeRange = None
+maxAgeRange = [x for x in range(0, 2001, 10)]
+# maxAgeRange = None
 # videosList = [ ("caltech", "set03", "V000"), ("caltech" , "set01", "V005"), ("caltech", "set01", "V000")]
 # videosList = [("caltech", "set01", "V004")]
 # videosList = [("caltech", "set03", "V009")]
