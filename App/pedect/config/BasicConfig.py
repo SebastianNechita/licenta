@@ -87,7 +87,8 @@ class BasicConfig:
             "surviveThreshold": self.surviveThreshold,
             "surviveMovePercent": self.surviveMovePercent,
             "minScorePrediction": self.minScorePrediction,
-            "maxAge": self.maxAge
+            "maxAge": self.maxAge,
+            "maxNrOfObjectsPerFrame": self.maxNrOfObjectsPerFrame
         }
 
     def __str__(self):

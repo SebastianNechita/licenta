@@ -22,7 +22,7 @@ config = getConfigFromTrainId(11)
 # config.trackerType = "fake"
 # config.trackerType = "kcf"
 # config.trackerType = "cached medianflow"
-config.trackerType = "medianflow"
+config.trackerType = "goturn"
 # config.trackerType = "cached csrt"
 # config.trackerType = "cached boosting"
 # config.trackerType = "mil"
@@ -31,22 +31,24 @@ print("Tracker type is", config.trackerType)
 service = Service(config)
 emptyDirectory(TEMP_FOLDER)
 # trackerTypes = ["cached kcf"]
-trackerTypes = ["cached kcf", "cached fake"]
+trackerTypes = ["boosting", "tld", "kcf", "mil", "medianflow", "csrt", "mosse", "re3", "fake"]
 # trackerTypes = ["cached fake"]
 ctRange = (0.0, 0.0)
-rtRange = (0.4, 0.5)
+rtRange = (0.44, 0.44)
 stRange = (0.0, 0.0)
 smpRange = (0.0, 0.0)
 mspRange = (0.0, 0.0)
 ranges = [ctRange, rtRange, stRange, smpRange, mspRange]
-maxAgeRange = [x for x in range(0, 2001, 10)]
+maxAgeRange = [35, 70, 100, 220, 2000]
+maxObjectsRange = [10]
 # maxAgeRange = None
 # videosList = [ ("caltech", "set03", "V000"), ("caltech" , "set01", "V005"), ("caltech", "set01", "V000")]
 # videosList = [("caltech", "set01", "V004")]
 # videosList = [("caltech", "set03", "V009")]
 videosList = None
 stepSize = 0.01
-service.optimizeTrackerConfig("a.txt", trackerTypes, ctRange, rtRange, stRange, smpRange, mspRange, videosList, None, MAX_VIDEO_LENGTH, True, stepSize, maxAgeRange)
+# service.playVideo(("caltech", "set03", "V009"), config)
+service.optimizeTrackerConfig("a.txt", trackerTypes, ctRange, rtRange, stRange, smpRange, mspRange, videosList, None, MAX_VIDEO_LENGTH, True, stepSize, maxAgeRange, maxObjectsRange)
 # service.optimizeTrackerConfig("cached medianflow.txt", [trackerTypes[0]], ctRange, rtRange, stRange, smpRange, mspRange, videosList, rangeSize ** howMany, 600, True, rangeSize)
 # service.optimizeTrackerConfig("medianflow.txt", [trackerTypes[1]], ctRange, rtRange, stRange, smpRange, mspRange, videosList, rangeSize ** howMany, 600, True, rangeSize)
 print("Time slices are:")

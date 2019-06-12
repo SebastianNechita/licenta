@@ -42,13 +42,9 @@ class CachingTrackerManager:
         w = trackerType.split(" ")
         if len(w) > 1:
             trackerType = w[1]
-        print("Clearing tracker cache for", trackerType)
-        if trackerType in CachingTrackerManager.trackersConfigurations:
-            CachingTrackerManager.trackersConfigurations.pop(trackerType)
-
-        # CachingTrackerManager.trackersConfigurations[trackerType][0].clear()
-        # CachingTrackerManager.trackersConfigurations[trackerType][1].clear()
-        # CachingTrackerManager.trackersConfigurations[trackerType][2][0] = getTrackerFromTrackerType(trackerType)
+            print("Clearing tracker cache for", trackerType)
+            if trackerType in CachingTrackerManager.trackersConfigurations:
+                CachingTrackerManager.trackersConfigurations.pop(trackerType)
 
     @staticmethod
     def clearAllCache():

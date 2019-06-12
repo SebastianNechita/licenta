@@ -56,20 +56,19 @@ class Service:
         result = evaluator.evaluate()
         return result
 
-    def optimizeTrackerConfig(self, fileName, trackerTypes, ctRange: Tuple[float, float], rtRange: Tuple[float, float], stRange: Tuple[float, float], smpRange: Tuple[float, float], mspRange: Tuple[float, float], videosList: Sequence[Tuple[str, str, str]] = None, noIterations: int = None, noFrames: int=30, withPartialOutput: bool = False, stepSize: float = None, maxAgeRange: Sequence[int] = None):
+    def optimizeTrackerConfig(self, fileName, trackerTypes, ctRange: Tuple[float, float], rtRange: Tuple[float, float], stRange: Tuple[float, float], smpRange: Tuple[float, float], mspRange: Tuple[float, float], videosList: Sequence[Tuple[str, str, str]] = None, noIterations: int = None, noFrames: int=30, withPartialOutput: bool = False, stepSize: float = None, maxAgeRange: Sequence[int] = None, maxObjectsRange: Sequence[int] = None):
         if videosList is None:
             videosList = self.getTuningVideoList()
         print("Working on ", videosList)
         baseDir = 'results'
-        keys = ["trackerType", "createThreshold", "removeThreshold", "surviveThreshold", "surviveMovePercent", "minScorePrediction", "maxAge"]
+        keys = ["trackerType", "createThreshold", "removeThreshold", "surviveThreshold", "surviveMovePercent", "minScorePrediction", "maxAge", "maxNrOfObjectsPerFrame"]
         evaluations = ['mAP', "Elapsed time", "GTmAP", "Memory"]
         titles = keys + evaluations
         # keys = keys + evaluations
         emptyDirectory(baseDir)
-        results = HyperParametersTuner.tryToFindBestConfig(self.config, videosList,
-                                                           noIterations, trackerTypes,
-                                                           ctRange, rtRange, stRange, smpRange, mspRange,
-                                                           noFrames, withPartialOutput, stepSize, maxAgeRange)
+        results = HyperParametersTuner.tryToFindBestConfig(self.config, videosList, noIterations, trackerTypes,
+                                                           ctRange, rtRange, stRange, smpRange, mspRange, noFrames,
+                                                           withPartialOutput, stepSize, maxAgeRange, maxObjectsRange)
         f = open(os.path.join(baseDir, fileName), "w")
         stringPattern = '{:18s}'
         floatPattern = '{:18f}'
@@ -182,6 +181,6 @@ class Service:
 
     @staticmethod
     def getAllAvailableTrackerTypes():
-        return ["fake", "csrt", "kcf", "boosting", "mil", "tld", "medianflow", "mosse"]
+        return ["fake", "csrt", "kcf", "boosting", "mil", "tld", "medianflow", "mosse", "re3"]
 
 

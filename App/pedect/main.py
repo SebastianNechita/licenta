@@ -13,6 +13,9 @@ from pedect.controller.TrainingController import TrainingController
 from pedect.controller.TrainingSetPreparationController import TrainingSetPreparationController
 from pedect.service.Service import Service
 
+sys.path.append("./keras-yolo3/")
+sys.path.append("./re3-tensorflow/")
+
 class Form(QObject):
 
     def __init__(self, ui_file, trainIdsController: TrainIdsController, trainingSetPreparationController: TrainingSetPreparationController, trainingController: TrainingController,
