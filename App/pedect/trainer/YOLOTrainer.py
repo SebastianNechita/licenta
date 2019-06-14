@@ -49,7 +49,7 @@ class YOLOTrainer(Trainer):
 
     def train(self) -> None:
         config = self.config
-        print(config)
+        # print(config)
         freezeNoEpochs = config.freezeNoEpochs if config.loadPreTrained else 0
         noFreezeNoEpochs = config.noFreezeNoEpochs
         is_tiny_version = config.isTiny  # default setting
@@ -67,7 +67,7 @@ class YOLOTrainer(Trainer):
 
         input_shape = config.inputShape
         tensorboard = LRTensorBoard(log_dir=os.path.join(MODELS_DIR, str(config.trainId), "logs/{}".format(config.trainId)))
-        preTrainedModelPath = config.preTrainedModelPath
+        preTrainedModelPath = config.getPreTrainedModelPath()
         if preTrainedModelPath == "default":
             preTrainedModelPath = 'tiny_yolo_weights.h5' if is_tiny_version else 'yolo_weights.h5'
             preTrainedModelPath = os.path.join(YOLO_DIR, 'model_data', preTrainedModelPath)

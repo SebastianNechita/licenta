@@ -67,32 +67,39 @@ class TrainingController:
 
 
     def __saveAndTrain(self):
-        if not self.__uiToModel():
-            return
-        ButtonEnablerManager.setAllButtonsDisabledState(True)
-        trainId = self.trainIdsController.getSelectedTrainId()
-        config = getConfigFromTrainId(trainId)
-        functionToCall = None
-        if self.retrainCheckBox.checkState() == Qt.CheckState.Checked:
-            print("Retraining!")
-            functionToCall = self.service.retrain
-        else:
-            print("Training!")
-            functionToCall = self.service.train
 
-        Thread(target=lambda: (functionToCall(config),
-                               self.__modelToUi(),
-                               messageManager.success.emit("Training complete!"),
+        ButtonEnablerManager.setAllButtonsDisabledState(True)
+
+
+        Thread(target=lambda: (self.__saveAndTrainHelper(),
                                ButtonEnablerManager.setAllButtonsDisabledState(False))).start()
 
+    def __saveAndTrainHelper(self):
+        if not self.__uiToModel():
+            return
 
+        try:
+            trainId = self.trainIdsController.getSelectedTrainId()
+            config = getConfigFromTrainId(trainId)
+            if self.retrainCheckBox.checkState() == Qt.CheckState.Checked:
+                print("Retraining!")
+                functionToCall = self.service.retrain
+            else:
+                print("Training!")
+                functionToCall = self.service.train
+
+            functionToCall(config),
+            self.__modelToUi(),
+            messageManager.success.emit("Training complete!")
+        except Exception as e:
+            messageManager.failure.emit(str(e))
 
 
 
     def __modelToUi(self):
         trainId = self.trainIdsController.getSelectedTrainId()
         config = getConfigFromTrainId(trainId)
-        print(config)
+        # print(config)
         self.modelNameTB.setText(config.modelName)
         self.inputShapeTB1.setText(str(config.inputShape[0]))
         self.inputShapeTB2.setText(str(config.inputShape[1]))
@@ -101,7 +108,7 @@ class TrainingController:
         self.validationSplitTB.setText(str(config.validationSplit))
         self.freezeBatchSizeTB.setText(str(config.freezeBatchSize))
         self.noFreezeBatchSizeTB.setText(str(config.noFreezeBatchSize))
-        self.preTrainedModelPathTB.setText(config.preTrainedModelPath)
+        self.preTrainedModelPathTB.setText(config.getPreTrainedModelPath())
         self.checkpointPeriodTB.setText(str(config.checkpointPeriod))
         self.initialLRTB.setText(str(config.initialLR))
         self.alreadyTrainedEpochsTB.setText(str(config.alreadyTrainedEpochs))

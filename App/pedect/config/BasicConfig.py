@@ -44,6 +44,14 @@ class BasicConfig:
     noFreezeBatchSize = 16
     loadPreTrained = True
     preTrainedModelPath = "default"
+
+    def getPreTrainedModelPath(self):
+        sign = '/'
+        if sign not in self.preTrainedModelPath:
+            sign = '\\'
+        words = self.preTrainedModelPath.split(sign)
+        return os.path.join(*words)
+
     checkpointPeriod = 150
     initialLR = 1e-4
     alreadyTrainedEpochs = 0

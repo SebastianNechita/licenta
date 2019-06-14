@@ -27,10 +27,8 @@ class TrainIdsController:
     def __copySelectedTrainId(self):
         trainId = self.getSelectedTrainId()
         config = getConfigFromTrainId(trainId)
-        config.trainId = self.__addNewTrainId()
-        config.alreadyTrainedEpochs = 0
-        config.preTrainedModelPath = "default"
-        saveConfiguration(config)
+        self.service.copyConfig(config, self.__addNewTrainId())
+
 
     def __refreshTrainIdList(self):
         self.listViewModel.clear()

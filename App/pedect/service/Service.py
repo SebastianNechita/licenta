@@ -14,10 +14,8 @@ from pedect.utils.osUtils import emptyDirectory
 
 
 class Service:
-    def __init__(self, config: BasicConfig) -> None:
+    def __init__(self) -> None:
         self.imgSaveTextPattern = "%s-%s-%s-%s.jpg"
-        self.tracker = getTrackerFromConfig(config)
-        self.converter = ConverterToImagesYOLOv3(self.imgSaveTextPattern)
 
     def getTrainingVideoList(self):
         return self.splitIntoBatches()[0]
@@ -35,10 +33,11 @@ class Service:
         if trainingList is None:
             trainingList = self.getTrainingVideoList()
         print("Training list is ", trainingList)
-        self.converter.clearDirectory()
+        converter = ConverterToImagesYOLOv3(self.imgSaveTextPattern)
+        converter.clearDirectory()
         for video in trainingList:
-            self.converter.saveImagesFromGroundTruth(video[0], video[1], video[2])
-        self.converter.writeAnnotationsFile()
+            converter.saveImagesFromGroundTruth(video[0], video[1], video[2])
+        converter.writeAnnotationsFile()
 
     def train(self, config) -> None:
         trainer = YOLOTrainer(config)
@@ -91,7 +90,7 @@ class Service:
         RED = [0, 0, 255]
         GREEN = [0, 255, 0]
         BLUE = [255, 0, 0]
-        print(config)
+        # print(config)
         playVideo([(yoloPredictor, RED), (gtPredictor, GREEN), (trackerPredictor, BLUE)],
                   gtPredictor, nrFrames)
 
@@ -177,6 +176,13 @@ class Service:
 
     @staticmethod
     def getAllAvailableTrackerTypes():
-        return ["fake", "csrt", "kcf", "boosting", "mil", "tld", "medianflow", "mosse", "re3"]
+        return ["fake", "csrt", "kcf", "boosting", "mil", "tld", "medianflow", "mosse"]
+
+    @staticmethod
+    def copyConfig(config: BasicConfig, newTrainId):
+        config.trainId = newTrainId
+        config.alreadyTrainedEpochs = 0
+        config.preTrainedModelPath = "default"
+        saveConfiguration(config)
 
 

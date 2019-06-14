@@ -6,8 +6,9 @@ from PySide2.QtWidgets import QListView, QPushButton, QLineEdit
 from pedect.config.BasicConfig import getConfigFromTrainId
 from pedect.controller.TrainIdsController import TrainIdsController
 from pedect.design.uiHelper import deselectAllFromModel, selectVideosFromModel, populateModel, getCheckedVideos, \
-    ButtonEnablerManager
+    ButtonEnablerManager, messageManager
 from pedect.service.Service import Service
+from pedect.utils.constants import MAX_VIDEO_LENGTH
 
 
 class EvaluatingController:
@@ -47,11 +48,19 @@ class EvaluatingController:
 
     def __evaluate(self):
         ButtonEnablerManager.setAllButtonsDisabledState(True)
-        trainId = self.trainIdsController.getSelectedTrainId()
-        config = getConfigFromTrainId(trainId)
-        videoList = getCheckedVideos(self.videosListModel)
-        Thread(target=lambda: (self.resultEvaluationMAPLineEdit.setText(str(self.service.evaluatePredictor(config, videoList)['mAP'])),
+
+        Thread(target=lambda: (self.__evaluateHelper(),
                                ButtonEnablerManager.setAllButtonsDisabledState(False))).start()
+
+    def __evaluateHelper(self):
+        try:
+            trainId = self.trainIdsController.getSelectedTrainId()
+            config = getConfigFromTrainId(trainId)
+            videoList = getCheckedVideos(self.videosListModel)
+            self.resultEvaluationMAPLineEdit.setText(str(self.service.evaluatePredictor(config, videoList, MAX_VIDEO_LENGTH, True)['mAP'])),
+            messageManager.success.emit("Evaluating complete!")
+        except Exception as e:
+            messageManager.failure.emit(str(e))
 
 
 

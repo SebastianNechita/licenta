@@ -18,7 +18,7 @@ class MyConfig(BasicConfig):
     checkpointPeriod = 3
 config = MyConfig()
 
-controller = Service(config)
+service = Service()
 
 # service.prepareTrainingSet()
-controller.train()
+service.train(config)

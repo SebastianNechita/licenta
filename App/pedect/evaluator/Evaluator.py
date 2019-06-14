@@ -64,6 +64,8 @@ class Evaluator:
 
 
     def evaluate(self):
+        if self.elapsedTime == 0.0:
+            raise Exception("No video evaluated!")
         self.readValuesFromFile()
         start = time.time()
         memory = get_size(self.predictedDict) + get_size(self.gtDict)

@@ -18,21 +18,11 @@ class MyConfig(BasicConfig):
 
 MyConfig()
 config = getConfigFromTrainId(11)
-# config.trackerType = "csrt"
-# config.trackerType = "fake"
-# config.trackerType = "kcf"
-# config.trackerType = "cached medianflow"
-config.trackerType = "goturn"
-# config.trackerType = "cached csrt"
-# config.trackerType = "cached boosting"
-# config.trackerType = "mil"
-# config.trackerType = "mosse"
+config.trackerType = "kcf"
 print("Tracker type is", config.trackerType)
-service = Service(config)
+service = Service()
 emptyDirectory(TEMP_FOLDER)
 trackerTypes = ["kcf", "fake"]
-# trackerTypes = ["re3", "mil", "csrt", "medianflow", "mosse", "fake"]
-# trackerTypes = ["cached fake"]
 ctRange = (0.0, 0.0)
 rtRange = (0.45, 0.45)
 stRange = (0.0, 0.0)
@@ -50,8 +40,6 @@ videosList = None
 stepSize = 0.01
 # service.playVideo(("caltech", "set03", "V009"), config)
 service.optimizeTrackerConfig(config, "a.txt", trackerTypes, ctRange, rtRange, stRange, smpRange, mspRange, videosList, None, MAX_VIDEO_LENGTH, True, stepSize, maxAgeRange, maxObjectsRange)
-# service.optimizeTrackerConfig("cached medianflow.txt", [trackerTypes[0]], ctRange, rtRange, stRange, smpRange, mspRange, videosList, rangeSize ** howMany, 600, True, rangeSize)
-# service.optimizeTrackerConfig("medianflow.txt", [trackerTypes[1]], ctRange, rtRange, stRange, smpRange, mspRange, videosList, rangeSize ** howMany, 600, True, rangeSize)
 print("Time slices are:")
 print([("%.2f%%" % x) for x in service.getRunningTimesPercentForTracker()])
 print("Tracker calls / CachedTracker calls / Percent")
@@ -59,5 +47,3 @@ ta = TimesHolder.trackerAccessed
 cta = TimesHolder.cachedTrackerAccessed
 print(ta, cta)
 print(ta, cta, "%.2f%%" % ((ta * 100) / max(ta, cta)))
-# 1. De ce nu se da niciodata initializare la cache din nou?
-# 2. Unde ii fake tracker in loguri?

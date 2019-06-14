@@ -23,6 +23,7 @@ class YOLOManager:
         uniqueValue = (config.getModelPath(), config.getAnchorsPath())
         if uniqueValue not in YOLOManager.existentYoloObjects:
             print("Created a new YOLO object!")
+            K.clear_session()
             YOLOManager.existentYoloObjects[uniqueValue] = YOLO(model_path = config.getModelPath(),
                                                                 classes_path = LABELS_FILE,
                                                                 anchors_path = config.getAnchorsPath(),

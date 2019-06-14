@@ -33,10 +33,10 @@ config.noFreezeNoEpochs = 38
 # config.save()
 # config.saveText()
 # print("Input shape: ", config.inputShape)
-service = Service(config)
+service = Service()
 # print(config)
 # service.prepareTrainingSet()
-service.train()
+service.train(config)
 
 # divRate = 1, isTiny = True -> batchSize = 32 ---- 2min
 # divRate = 2, isTiny = True -> batchSize = 128 ---- 41 sec (35)

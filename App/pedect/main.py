@@ -91,7 +91,7 @@ if __name__ == '__main__':
 
     MyConfig()
     config = getConfigFromTrainId(11)
-    service = Service(config)
+    service = Service()
     trainingIdsController = TrainIdsController(service)
     trainingPreparationController = TrainingSetPreparationController(service)
     trainController = TrainingController(service, trainingIdsController)
