@@ -1,0 +1,3 @@
+trackerType        | createThreshold    | removeThreshold    | surviveThreshold   | surviveMovePercent | minScorePrediction | maxAge             | maxNrOfObjectsPerFrame | mAP                | Elapsed time       | GTmAP              | Memory            
+kcf                |           0.000000 |           0.450000 |           0.000000 |           0.000000 |           0.000000 |        2000.000000 |          50.000000 |           0.044358 |        1232.561574 |           0.046434 |   122679694.000000
+fake               |           0.000000 |           0.450000 |           0.000000 |           0.000000 |           0.000000 |        2000.000000 |          50.000000 |           0.040431 |         350.326946 |           0.041938 |   669295746.000000

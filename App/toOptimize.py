@@ -30,22 +30,23 @@ config.trackerType = "goturn"
 print("Tracker type is", config.trackerType)
 service = Service(config)
 emptyDirectory(TEMP_FOLDER)
-# trackerTypes = ["cached kcf"]
-trackerTypes = ["boosting", "tld", "kcf", "mil", "medianflow", "csrt", "mosse", "re3", "fake"]
+trackerTypes = ["kcf", "fake"]
+# trackerTypes = ["re3", "mil", "csrt", "medianflow", "mosse", "fake"]
 # trackerTypes = ["cached fake"]
 ctRange = (0.0, 0.0)
-rtRange = (0.44, 0.44)
+rtRange = (0.45, 0.45)
 stRange = (0.0, 0.0)
 smpRange = (0.0, 0.0)
 mspRange = (0.0, 0.0)
 ranges = [ctRange, rtRange, stRange, smpRange, mspRange]
-maxAgeRange = [35, 70, 100, 220, 2000]
-maxObjectsRange = [10]
+maxAgeRange = [2000]
+maxObjectsRange = [50]
 # maxAgeRange = None
 # videosList = [ ("caltech", "set03", "V000"), ("caltech" , "set01", "V005"), ("caltech", "set01", "V000")]
 # videosList = [("caltech", "set01", "V004")]
 # videosList = [("caltech", "set03", "V009")]
 videosList = None
+# videosList = service.getTrainingVideoList()
 stepSize = 0.01
 # service.playVideo(("caltech", "set03", "V009"), config)
 service.optimizeTrackerConfig("a.txt", trackerTypes, ctRange, rtRange, stRange, smpRange, mspRange, videosList, None, MAX_VIDEO_LENGTH, True, stepSize, maxAgeRange, maxObjectsRange)
