@@ -24,7 +24,7 @@ trackerTypes = ["kcf", "fake"]
 
 # videosList = [ ("caltech", "set03", "V000"), ("caltech" , "set01", "V005"), ("caltech", "set01", "V000")]
 # videosList = [("caltech", "set01", "V004")]
-videosList = [("caltech", "set03", "V009")]
+videosList = service.getGenerationVideoList()
 # videosList = None
 # videosList = service.getTrainingVideoList()
 
