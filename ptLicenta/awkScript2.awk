@@ -8,9 +8,9 @@ BEGIN{
 	if(NR >= 2) {
 			total += 1
 			trackerCnt[$2] += 1
-			trackersBestConfigs[$2][trackerCnt[$2]] = $16
+			trackersBestConfigs[$2][trackerCnt[$2]] = $18
 			if(trackerCnt[$2] <= top) {
-				print NR - 1, "&", $2, "&", $4, "&", $6, "&", $8, "&", $10, "&", $12, "&", $14, "&", $16, "\\\\"
+				print NR - 1, "&", $2, "&", $4, "&", $6, "&", $8, "&", $10, "&", $12, "&", $14, "&", $16, "&", $18, "\\\\"
 			}
 			trackerTime[$2] += $18
 	}

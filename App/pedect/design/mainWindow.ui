@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1198</width>
-    <height>824</height>
+    <width>1206</width>
+    <height>1072</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,11 +20,11 @@
       <x>0</x>
       <y>0</y>
       <width>1031</width>
-      <height>801</height>
+      <height>791</height>
      </rect>
     </property>
     <property name="currentIndex">
-     <number>4</number>
+     <number>0</number>
     </property>
     <widget class="QWidget" name="tab1">
      <attribute name="title">
@@ -1775,6 +1775,22 @@
     </property>
     <property name="text">
      <string>Copy selected train id</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="debugConsoleLabel">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>800</y>
+      <width>1171</width>
+      <height>241</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>TextLabel</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
     </property>
    </widget>
   </widget>
