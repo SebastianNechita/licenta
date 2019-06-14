@@ -13,6 +13,7 @@ from pedect.tracker.TimesHolder import TimesHolder as TH
 from pedect.utils.osUtils import emptyDirectory
 
 
+
 class Service:
     def __init__(self) -> None:
         self.imgSaveTextPattern = "%s-%s-%s-%s.jpg"
@@ -99,7 +100,6 @@ class Service:
             videoList = self.getGenerationVideoList()
         NewDataGenerator.initializeDirectory(IMAGE_GENERATION_SAVE_PATH)
         # gtPredictors = findGroundTruthFromVideoList(videoList)
-        gtPredictors = []
         tracker = getTrackerFromConfig(config)
         # i = 0
         toIterate = videoList
@@ -107,7 +107,6 @@ class Service:
             toIterate = tqdm(toIterate)
         for datasetName, setName, videoName in toIterate:
             gtPredictor = GroundTruthPredictor(datasetName, setName, videoName)
-            gtPredictors.append(gtPredictor)
             yoloPredictor = YOLOPredictor(gtPredictor, config)
             trackerPredictor = TrackerPredictor(yoloPredictor, gtPredictor, tracker, config)
             actualPredictor = MinScoreWrapperPredictor(trackerPredictor, config.minScorePrediction)
