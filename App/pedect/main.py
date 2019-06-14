@@ -1,8 +1,13 @@
+import os
 import sys
+import time
+from threading import Thread
 
+import PySide2.QtXml
 from PySide2.QtUiTools import QUiLoader
-from PySide2.QtWidgets import QApplication, QDialog
+from PySide2.QtWidgets import QApplication, QDialog, QLabel
 from PySide2.QtCore import QFile, QObject
+from tqdm import tqdm
 
 from pedect.config.BasicConfig import BasicConfig, getConfigFromTrainId
 from pedect.controller.EvaluatingController import EvaluatingController
@@ -28,6 +33,13 @@ class Form(QObject):
         loader = QUiLoader()
         self.window = loader.load(ui_file)
         ui_file.close()
+
+        debugConsole = self.window.findChild(QLabel, 'debugConsoleLabel')
+        debugConsole.setText("Debug console\n")
+        output = StdoutRedirector(debugConsole)
+        sys.stdout = output
+        sys.stderr = output
+
         trainIdsController.setUp(self.window)
         trainingSetPreparationController.setUp(self.window)
         trainingController.setUp(self.window)
@@ -37,6 +49,37 @@ class Form(QObject):
 
         self.window.show()
         QDialog().show()
+
+
+realOutput = sys.stdout
+
+
+class IORedirector(object):
+    def __init__(self, label):
+        self.label = label
+
+
+class StdoutRedirector(IORedirector):
+
+    def __init__(self, label):
+        IORedirector.__init__(self, label)
+        self.lines = []
+        self.maxLines = 8
+
+    def write(self, str):
+        realOutput.write(str)
+        self.lines = self.lines + [x for x in str.split("\n") if x != ""]
+        if len(self.lines) > self.maxLines:
+            self.lines = self.lines[-self.maxLines:]
+        str = ""
+        for x in self.lines:
+            str += x + "\n"
+        self.label.setText(str)
+
+    def flush(self):
+        pass
+
+
 
 
 class MyConfig(BasicConfig):
@@ -55,7 +98,7 @@ if __name__ == '__main__':
     evaluationController = EvaluatingController(service, trainingIdsController)
     optimizationController = OptimizeController(service, trainingIdsController)
     generatingController = GenerationController(service, trainingIdsController)
-    form = Form('pedect/design/mainWindow.ui', trainingIdsController, trainingPreparationController, trainController, evaluationController, optimizationController, generatingController)
+    form = Form(os.path.join("pedect", "design", "mainWindow.ui"), trainingIdsController, trainingPreparationController, trainController, evaluationController, optimizationController, generatingController)
     sys.exit(app.exec_())
 
 

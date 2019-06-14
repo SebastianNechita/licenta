@@ -1,8 +1,8 @@
-from PySide2.QtCore import Qt
+from PySide2.QtCore import Qt, Signal, QObject, Slot
 from PySide2.QtGui import QStandardItem
 from PySide2.QtWidgets import QMessageBox
 
-
+@Slot(str)
 def showError(text):
     messageBox = QMessageBox()
     messageBox.setWindowTitle("Error!")
@@ -10,7 +10,7 @@ def showError(text):
     messageBox.setText(text)
     messageBox.exec()
 
-
+@Slot(str)
 def showSuccess(text):
     messageBox = QMessageBox()
     messageBox.setWindowTitle("Success!")
@@ -52,3 +52,23 @@ def getCheckedVideos(model):
             if item.checkState() == Qt.CheckState.Checked:
                 trainList.append(tuple(item.data(1)))
     return trainList
+
+class ButtonEnablerManager:
+    buttonsList = []
+
+    @staticmethod
+    def addButton(button):
+        ButtonEnablerManager.buttonsList.append(button)
+
+    @staticmethod
+    def setAllButtonsDisabledState(state):
+        for b in ButtonEnablerManager.buttonsList:
+            b.setDisabled(state)
+
+class MessageManager(QObject):
+    success = Signal(str)
+    failure = Signal(str)
+
+messageManager = MessageManager()
+messageManager.success.connect(showSuccess)
+messageManager.failure.connect(showError)

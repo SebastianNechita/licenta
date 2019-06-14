@@ -4,7 +4,6 @@ from typing import Tuple
 from pedect.predictor.PredictedBox import PredictedBox
 from pedect.utils.IdGenerator import IdGenerator
 from pedect.utils.metrics import IOU
-from pedect.utils.parallel import executor
 
 
 class TrackedObject:

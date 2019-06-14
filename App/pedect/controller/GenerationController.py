@@ -1,4 +1,5 @@
 import traceback
+from threading import Thread
 
 from PySide2.QtCore import Qt
 from PySide2.QtGui import QStandardItemModel
@@ -7,7 +8,7 @@ from PySide2.QtWidgets import QListView, QPushButton, QLineEdit, QCheckBox
 from pedect.config.BasicConfig import getConfigFromTrainId, saveConfiguration
 from pedect.controller.TrainIdsController import TrainIdsController
 from pedect.design.uiHelper import deselectAllFromModel, selectVideosFromModel, populateModel, between0And1, \
-    showSuccess, showError, getCheckedVideos
+    getCheckedVideos, ButtonEnablerManager, messageManager
 from pedect.service.Service import Service
 
 
@@ -65,7 +66,18 @@ class GenerationController:
 
         self.trainIdsController.listView.clicked.connect(self.__modelToUi)
 
+        ButtonEnablerManager.addButton(saveConfigurationGenerateButton)
+        ButtonEnablerManager.addButton(playVideosButton)
+        ButtonEnablerManager.addButton(generateNewTrainingDataButton)
+        ButtonEnablerManager.addButton(deselectAllButton)
+        ButtonEnablerManager.addButton(chooseDefaultButton)
+
     def __saveAndGenerateNewTrainingData(self):
+        ButtonEnablerManager.setAllButtonsDisabledState(True)
+        Thread(target=lambda: (self.__saveAndGenerateNewTrainingDataHelper(),
+                               ButtonEnablerManager.setAllButtonsDisabledState(False))).start()
+
+    def __saveAndGenerateNewTrainingDataHelper(self):
         try:
             if not self.__uiToModel():
                 return
@@ -73,24 +85,26 @@ class GenerationController:
             trainId = self.trainIdsController.getSelectedTrainId()
             config = getConfigFromTrainId(trainId)
             self.service.generateNewData(config, videoList)
-            showSuccess("New data generated!")
+            messageManager.success.emit("New data generated!")
         except Exception as e:
-            showError(str(e))
+            messageManager.failure.emit(str(e))
             traceback.print_exc()
 
 
     def __playVideos(self):
+        ButtonEnablerManager.setAllButtonsDisabledState(True)
+        Thread(target=lambda: (self.__playVideosHelper(),
+                               ButtonEnablerManager.setAllButtonsDisabledState(False))).start()
+
+    def __playVideosHelper(self):
         videoList = getCheckedVideos(self.videosListModel)
         try:
             config = self.__getConfigFromUi()
             for videoTuple in videoList:
                 self.service.playVideo(videoTuple, config)
         except Exception as e:
-            showError(str(e))
+            messageManager.failure.emit(str(e))
             traceback.print_exc()
-
-
-
 
     def __modelToUi(self):
         trainId = self.trainIdsController.getSelectedTrainId()
@@ -134,9 +148,9 @@ class GenerationController:
         try:
             config = self.__getConfigFromUi()
             saveConfiguration(config)
-            showSuccess("Saved!")
+            messageManager.success.emit("Saved!")
             self.__modelToUi()
             return True
         except Exception as e:
-            showError(str(e))
+            messageManager.failure.emit(str(e))
             return False

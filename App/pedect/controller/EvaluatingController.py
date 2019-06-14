@@ -1,9 +1,12 @@
+from threading import Thread
+
 from PySide2.QtGui import QStandardItemModel
 from PySide2.QtWidgets import QListView, QPushButton, QLineEdit
 
 from pedect.config.BasicConfig import getConfigFromTrainId
 from pedect.controller.TrainIdsController import TrainIdsController
-from pedect.design.uiHelper import deselectAllFromModel, selectVideosFromModel, populateModel, getCheckedVideos
+from pedect.design.uiHelper import deselectAllFromModel, selectVideosFromModel, populateModel, getCheckedVideos, \
+    ButtonEnablerManager
 from pedect.service.Service import Service
 
 
@@ -36,14 +39,20 @@ class EvaluatingController:
         chooseDefaultButton.clicked.connect(lambda: selectVideosFromModel(self.videosListModel,
                                                                           self.service.getEvaluationVideoList()))
         evaluateButton.clicked.connect(self.__evaluate)
+        ButtonEnablerManager.addButton(deselectAllButton)
+        ButtonEnablerManager.addButton(chooseDefaultButton)
+        ButtonEnablerManager.addButton(evaluateButton)
+
 
 
     def __evaluate(self):
+        ButtonEnablerManager.setAllButtonsDisabledState(True)
         trainId = self.trainIdsController.getSelectedTrainId()
         config = getConfigFromTrainId(trainId)
         videoList = getCheckedVideos(self.videosListModel)
-        result = self.service.evaluatePredictor(config, videoList)
-        self.resultEvaluationMAPLineEdit.setText(str(result['mAP']))
+        Thread(target=lambda: (self.resultEvaluationMAPLineEdit.setText(str(self.service.evaluatePredictor(config, videoList)['mAP'])),
+                               ButtonEnablerManager.setAllButtonsDisabledState(False))).start()
+
 
 
 

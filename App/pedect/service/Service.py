@@ -15,7 +15,6 @@ from pedect.utils.osUtils import emptyDirectory
 
 class Service:
     def __init__(self, config: BasicConfig) -> None:
-        self.config = config
         self.imgSaveTextPattern = "%s-%s-%s-%s.jpg"
         self.tracker = getTrackerFromConfig(config)
         self.converter = ConverterToImagesYOLOv3(self.imgSaveTextPattern)
@@ -56,7 +55,7 @@ class Service:
         result = evaluator.evaluate()
         return result
 
-    def optimizeTrackerConfig(self, fileName, trackerTypes, ctRange: Tuple[float, float], rtRange: Tuple[float, float], stRange: Tuple[float, float], smpRange: Tuple[float, float], mspRange: Tuple[float, float], videosList: Sequence[Tuple[str, str, str]] = None, noIterations: int = None, noFrames: int=30, withPartialOutput: bool = False, stepSize: float = None, maxAgeRange: Sequence[int] = None, maxObjectsRange: Sequence[int] = None):
+    def optimizeTrackerConfig(self, config, fileName, trackerTypes, ctRange: Tuple[float, float], rtRange: Tuple[float, float], stRange: Tuple[float, float], smpRange: Tuple[float, float], mspRange: Tuple[float, float], videosList: Sequence[Tuple[str, str, str]] = None, noIterations: int = None, noFrames: int=30, withPartialOutput: bool = False, stepSize: float = None, maxAgeRange: Sequence[int] = None, maxObjectsRange: Sequence[int] = None):
         if videosList is None:
             videosList = self.getTuningVideoList()
         print("Working on ", videosList)
@@ -66,7 +65,7 @@ class Service:
         titles = keys + evaluations
         # keys = keys + evaluations
         emptyDirectory(baseDir)
-        results = HyperParametersTuner.tryToFindBestConfig(self.config, videosList, noIterations, trackerTypes,
+        results = HyperParametersTuner.tryToFindBestConfig(config, videosList, noIterations, trackerTypes,
                                                            ctRange, rtRange, stRange, smpRange, mspRange, noFrames,
                                                            withPartialOutput, stepSize, maxAgeRange, maxObjectsRange)
         f = open(os.path.join(baseDir, fileName), "w")
@@ -84,9 +83,7 @@ class Service:
 
 
 
-    def playVideo(self, video: Tuple[str, str, str], config: BasicConfig = None, nrFrames = MAX_VIDEO_LENGTH) -> None:
-        if config is None:
-            config = self.config
+    def playVideo(self, video: Tuple[str, str, str], config: BasicConfig, nrFrames = MAX_VIDEO_LENGTH) -> None:
         gtPredictor = GroundTruthPredictor(video[0], video[1], video[2])
         yoloPredictor = YOLOPredictor(gtPredictor, config)
         trackerPredictor = TrackerPredictor(yoloPredictor, gtPredictor, getTrackerFromConfig(config), config)
@@ -141,8 +138,7 @@ class Service:
         return sorted(list(set(result)))
 
     def splitIntoBatches(self) -> Tuple[Sequence[Tuple[str, str, str]], Sequence[Tuple[str, str, str]], Sequence[Tuple[str, str, str]], Sequence[Tuple[str, str, str]]]:
-        aux = self.config.batchSplit
-        splitPercent = [aux[0], aux[1], aux[2], aux[3]]
+        splitPercent = list(BATCH_SPLIT)
         sets = self.getAllVideoTuples()
         for i in range(len(splitPercent))[1:]:
             splitPercent[i] += splitPercent[i - 1]

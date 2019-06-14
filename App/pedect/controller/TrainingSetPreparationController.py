@@ -1,7 +1,10 @@
+from threading import Thread
+
 from PySide2.QtGui import QStandardItemModel
 from PySide2.QtWidgets import QListView, QPushButton
 
-from pedect.design.uiHelper import deselectAllFromModel, selectVideosFromModel, populateModel, getCheckedVideos
+from pedect.design.uiHelper import deselectAllFromModel, selectVideosFromModel, populateModel, getCheckedVideos, \
+    ButtonEnablerManager
 from pedect.service.Service import Service
 
 
@@ -27,8 +30,14 @@ class TrainingSetPreparationController:
         chooseDefaultButton.clicked.connect(lambda: selectVideosFromModel(self.videosListModel,
                                                                           self.service.getTrainingVideoList()))
         prepareTrainingSetButton.clicked.connect(self.__prepareTrainingSet)
-
+        ButtonEnablerManager.addButton(deselectAllButton)
+        ButtonEnablerManager.addButton(chooseDefaultButton)
+        ButtonEnablerManager.addButton(prepareTrainingSetButton)
 
     def __prepareTrainingSet(self):
+        # self.prepareTrainingSetButton.setDisabled(True)
+        ButtonEnablerManager.setAllButtonsDisabledState(True)
         videoList = getCheckedVideos(self.videosListModel)
-        self.service.prepareTrainingSet(videoList)
+        thread1 = Thread(target=lambda: (self.service.prepareTrainingSet(videoList), ButtonEnablerManager.setAllButtonsDisabledState(False)))
+        thread1.start()
+        # self.service.prepareTrainingSet(videoList)

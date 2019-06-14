@@ -21,7 +21,7 @@ TEMP_FOLDER = os.path.join(BASE_DIR, ".temp")
 
 MAX_VIDEO_LENGTH = 10000000
 MAX_WORKERS = 8  # for parallelization
-
+BATCH_SPLIT = (0.2, 0.1, 0.05, 0.65)
 
 IMAGES_READING_VERBOSE = True
 

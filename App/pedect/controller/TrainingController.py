@@ -1,11 +1,12 @@
 import os
+from threading import Thread
 
-from PySide2.QtCore import Qt
+from PySide2.QtCore import Qt, QThread
 from PySide2.QtWidgets import QPushButton, QCheckBox, QLineEdit
 
 from pedect.config.BasicConfig import getConfigFromTrainId, saveConfiguration
 from pedect.controller.TrainIdsController import TrainIdsController
-from pedect.design.uiHelper import showSuccess, showError
+from pedect.design.uiHelper import ButtonEnablerManager, messageManager
 from pedect.service.Service import Service
 
 
@@ -60,21 +61,32 @@ class TrainingController:
         self.saveConfigurationButton.clicked.connect(self.__uiToModel)
         self.saveConfigurationAndTrainButton.clicked.connect(self.__saveAndTrain)
         self.trainIdsController.listView.clicked.connect(self.__modelToUi)
+        ButtonEnablerManager.addButton(self.saveConfigurationButton)
+        ButtonEnablerManager.addButton(self.saveConfigurationAndTrainButton)
+
 
 
     def __saveAndTrain(self):
         if not self.__uiToModel():
             return
+        ButtonEnablerManager.setAllButtonsDisabledState(True)
         trainId = self.trainIdsController.getSelectedTrainId()
         config = getConfigFromTrainId(trainId)
+        functionToCall = None
         if self.retrainCheckBox.checkState() == Qt.CheckState.Checked:
             print("Retraining!")
-            self.service.retrain(config)
+            functionToCall = self.service.retrain
         else:
             print("Training!")
-            self.service.train(config)
-        self.__modelToUi()
-        showSuccess("Training complete!")
+            functionToCall = self.service.train
+
+        Thread(target=lambda: (functionToCall(config),
+                               self.__modelToUi(),
+                               messageManager.success.emit("Training complete!"),
+                               ButtonEnablerManager.setAllButtonsDisabledState(False))).start()
+
+
+
 
 
     def __modelToUi(self):
@@ -125,11 +137,11 @@ class TrainingController:
             config.isTiny = True if self.isTinyCheckbox.checkState() == Qt.CheckState.Checked else False
             config.loadPreTrained = True if self.loadPretrainedCheckbox.checkState() == Qt.CheckState.Checked else False
             saveConfiguration(config)
-            showSuccess("Saved!")
+            messageManager.success.emit("Saved!")
             self.__modelToUi()
             return True
         except Exception as e:
-            showError(str(e))
+            messageManager.failure.emit(str(e))
             return False
 
 

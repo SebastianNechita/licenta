@@ -1,11 +1,13 @@
+from threading import Thread
+
 from PySide2.QtCore import Qt
 from PySide2.QtGui import QStandardItemModel, QStandardItem
 from PySide2.QtWidgets import QListView, QPushButton, QLineEdit, QCheckBox, QTableView
 
 from pedect.config.BasicConfig import getConfigFromTrainId
 from pedect.controller.TrainIdsController import TrainIdsController
-from pedect.design.uiHelper import showSuccess, showError, deselectAllFromModel, selectVideosFromModel, populateModel, \
-    between0And1, getCheckedVideos
+from pedect.design.uiHelper import deselectAllFromModel, selectVideosFromModel, populateModel, \
+    between0And1, getCheckedVideos, ButtonEnablerManager, messageManager
 from pedect.service.Service import Service
 
 
@@ -81,7 +83,18 @@ class OptimizeController:
         self.findBestConfigurationsButton.clicked.connect(self.__findBestConfigurations)
 
 
+        ButtonEnablerManager.addButton(deselectAllButton)
+        ButtonEnablerManager.addButton(chooseDefaultButton)
+        ButtonEnablerManager.addButton(self.findBestConfigurationsButton)
+
+
+
     def __findBestConfigurations(self):
+        ButtonEnablerManager.setAllButtonsDisabledState(True)
+        Thread(target=lambda: (self.__findBestConfigurationsHelper(),
+                               ButtonEnablerManager.setAllButtonsDisabledState(False))).start()
+
+    def __findBestConfigurationsHelper(self):
         try:
             ctFrom = between0And1(float(self.ctFromTB.text()))
             ctTo = between0And1(float(self.ctToTB.text()))
@@ -116,17 +129,16 @@ class OptimizeController:
             stepSize = between0And1(float(self.stepSizeTextBox.text()))
             trainId = self.trainIdsController.getSelectedTrainId()
             config = getConfigFromTrainId(trainId)
-            self.service.config = config
-            titles, rows = self.service.optimizeTrackerConfig("temp.txt", trackerTypeList, ctRange, rtRange, stRange,
+            titles, rows = self.service.optimizeTrackerConfig(config, "temp.txt", trackerTypeList, ctRange, rtRange, stRange,
                                                               smpRange, mspRange, videoList, None, maxNoFrames, True,
                                                               stepSize)
             self.bestConfigurationsListViewModel.removeRows(0, self.bestConfigurationsListViewModel.rowCount())
             self.bestConfigurationsListViewModel.setHorizontalHeaderLabels(titles)
             for row in rows:
                 self.bestConfigurationsListViewModel.appendRow([QStandardItem(str(el)) for el in row])
-            showSuccess("YES!")
+            messageManager.success.emit("Finished finding the best configurations!")
         except Exception as e:
-            showError(str(e))
+            messageManager.failure.emit(str(e))
 
 
 

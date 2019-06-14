@@ -11,3 +11,6 @@ temporary_annotations_file.csv
 recordedVide*
 *.pyc
 .temp
+dist
+build
+*.spec
