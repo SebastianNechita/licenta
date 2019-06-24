@@ -20,8 +20,7 @@ def getTrackerFromTrackerType(trackerType):
     if len(wordList) == 1:
         return getNormalTrackerFromConfig(wordList[0])
     if wordList[0] != "cached":
-        print("Error no such known tracker:", trackerType)
-        exit(1)
+        raise Exception("Error no such known tracker:%s" % trackerType)
     return CachingTracker(getNormalTrackerFromConfig(wordList[1]))
 
 def getTrackerFromConfig(config: BasicConfig):
@@ -53,7 +52,7 @@ class CachingTrackerManager:
 
 class CachingTracker(Tracker):
 
-    def __init__(self, tracker):
+    def __init__(self, tracker: Tracker):
         Tracker.__init__(self)
         self.trackerType = "cached " + tracker.trackerType
         self.idsToHash, self.hashToAnswer, self.tracker = CachingTrackerManager.getConfigurationForTracker(tracker.trackerType)
@@ -73,14 +72,12 @@ class CachingTracker(Tracker):
             theHash = hash((imageHash, bbox))
             self.idsToHash[uniqueId] = theHash
             if theHash not in self.hashToAnswer:
-                # print("Tracking...")
                 self.hashToAnswer[theHash] = {imageHash: self.tracker.track(str(theHash), image, bbox)}
             return self.hashToAnswer[theHash][imageHash]
         theHash = self.idsToHash[uniqueId]
         if imageHash not in self.hashToAnswer[theHash]:
-            # print("Tracking...")
             self.hashToAnswer[theHash][imageHash] = self.tracker.track(str(theHash), image)
         return self.hashToAnswer[theHash][imageHash]
 
-    def parallelizable(self) -> bool:
-        return False
+    # def parallelizable(self) -> bool:
+    #     return False

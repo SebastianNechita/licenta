@@ -4,6 +4,7 @@ from pedect.evaluator.HyperParametersTuner import *
 from pedect.generator.NewDataGenerator import NewDataGenerator
 from pedect.predictor.GroundTruthPredictor import GroundTruthPredictor
 from pedect.predictor.TrackerPredictor import TrackerPredictor
+from pedect.predictor.VideoHolder import VideoHolder
 from pedect.predictor.YOLOPredictor import YOLOPredictor
 from pedect.tracker.trackerHelper import getTrackerFromConfig
 from pedect.trainer.YOLOTrainer import YOLOTrainer
@@ -45,6 +46,7 @@ class Service:
         trainer.train()
 
     def evaluatePredictor(self, config, videosList: Sequence[Tuple[str, str, str]] = None, noFrames: int = MAX_VIDEO_LENGTH, withPartialOutput: bool = False) -> dict:
+        random.seed(1)
         if videosList is None:
             videosList = self.getEvaluationVideoList()
         evaluator = Evaluator(noFrames)
@@ -91,7 +93,6 @@ class Service:
         RED = [0, 0, 255]
         GREEN = [0, 255, 0]
         BLUE = [255, 0, 0]
-        # print(config)
         playVideo([(yoloPredictor, RED), (gtPredictor, GREEN), (trackerPredictor, BLUE)],
                   gtPredictor, nrFrames)
 
@@ -106,11 +107,11 @@ class Service:
         if verbose:
             toIterate = tqdm(toIterate)
         for datasetName, setName, videoName in toIterate:
-            gtPredictor = GroundTruthPredictor(datasetName, setName, videoName)
-            yoloPredictor = YOLOPredictor(gtPredictor, config)
-            trackerPredictor = TrackerPredictor(yoloPredictor, gtPredictor, tracker, config)
+            videoHolder = VideoHolder(datasetName, setName, videoName)
+            yoloPredictor = YOLOPredictor(videoHolder, config)
+            trackerPredictor = TrackerPredictor(yoloPredictor, videoHolder, tracker, config)
             actualPredictor = MinScoreWrapperPredictor(trackerPredictor, config.minScorePrediction)
-            generator = NewDataGenerator(actualPredictor, gtPredictor, self.imgSaveTextPattern)
+            generator = NewDataGenerator(actualPredictor, videoHolder, self.imgSaveTextPattern)
             generator.generateNewData(config.imageGenerationSavePeriod, IMAGE_GENERATION_SAVE_PATH,
                                       config.imageGenerationSaveFileName, verbose, nrFrames)
 

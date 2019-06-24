@@ -99,7 +99,6 @@ class TrainingController:
     def __modelToUi(self):
         trainId = self.trainIdsController.getSelectedTrainId()
         config = getConfigFromTrainId(trainId)
-        # print(config)
         self.modelNameTB.setText(config.modelName)
         self.inputShapeTB1.setText(str(config.inputShape[0]))
         self.inputShapeTB2.setText(str(config.inputShape[1]))

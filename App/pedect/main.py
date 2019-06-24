@@ -4,6 +4,7 @@ import time
 from threading import Thread
 
 import PySide2.QtXml
+from PySide2.QtGui import QIcon
 from PySide2.QtUiTools import QUiLoader
 from PySide2.QtWidgets import QApplication, QDialog, QLabel
 from PySide2.QtCore import QFile, QObject
@@ -46,7 +47,8 @@ class Form(QObject):
         evaluatingController.setUp(self.window)
         optimizeController.setUp(self.window)
         generationController.setUp(self.window)
-
+        self.window.setWindowTitle("Object detection with the help of object tracking")
+        self.window.setWindowIcon(QIcon("icon.png"))
         self.window.show()
         QDialog().show()
 

@@ -12,6 +12,7 @@ from yolo3.model import preprocess_true_boxes, yolo_body, tiny_yolo_body, yolo_l
 from yolo3.utils import get_random_data
 
 from pedect.config.BasicConfig import BasicConfig, saveConfiguration
+from pedect.predictor.YOLOPredictor import YOLOManager
 from pedect.trainer.Trainer import Trainer
 from pedect.utils.constants import *
 from pedect.utils.osUtils import emptyDirectory
@@ -48,8 +49,8 @@ class YOLOTrainer(Trainer):
         return path
 
     def train(self) -> None:
+        YOLOManager.existentYoloObjects.clear()
         config = self.config
-        # print(config)
         freezeNoEpochs = config.freezeNoEpochs if config.loadPreTrained else 0
         noFreezeNoEpochs = config.noFreezeNoEpochs
         is_tiny_version = config.isTiny  # default setting

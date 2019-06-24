@@ -15,9 +15,9 @@ class Tracker:
     # def clearTracker(self):
     #     pass
 
-    @abstractmethod
-    def parallelizable(self) -> bool:
-        pass
+    # @abstractmethod
+    # def parallelizable(self) -> bool:
+    #     pass
 
     def trackAll(self, uniqueIds: Sequence[str], image, imageHash: int = None) -> dict:
         rez = {}

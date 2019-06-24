@@ -4,10 +4,10 @@
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>592</x>
-      <y>128</y>
+      <x>552</x>
+      <y>40</y>
       <w>384</w>
-      <h>112</h>
+      <h>80</h>
     </coordinates>
     <panel_attributes>Tracker
 --
@@ -15,7 +15,6 @@
 --
 +__init__(self)
 /+track(self, uniqueId: str, image, bbox: Tuple[int, int, int, int], imageHash: int)/
-/+parallelizable(self)/
 +trackAll(self, uniqueIds: Sequence[str], image, imageHash: int)
 </panel_attributes>
     <additional_attributes/>
@@ -23,141 +22,136 @@
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>344</x>
-      <y>344</y>
+      <x>304</x>
+      <y>216</y>
       <w>384</w>
-      <h>88</h>
+      <h>64</h>
     </coordinates>
     <panel_attributes>FakeTracker
 --
 -__trackers: dict
 --
-+__init__(self)
-+track(self, uniqueId: str, image, bbox: Tuple[int, int, int, int], imageHash: int)
-+parallelizable(self)</panel_attributes>
++__init__(self)</panel_attributes>
     <additional_attributes/>
   </element>
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>344</x>
-      <y>456</y>
+      <x>304</x>
+      <y>328</y>
       <w>392</w>
-      <h>96</h>
+      <h>72</h>
     </coordinates>
     <panel_attributes>Re3ObjectTracker
 --
 -__tracker: Re3Tracker
 --
 +__init__(self)
-+track(self, uniqueId: str, image, bbox: Tuple[int, int, int, int], imageHash: int)
-+parallelizable(self)
 _+getTracker()_</panel_attributes>
     <additional_attributes/>
   </element>
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>816</x>
-      <y>328</y>
+      <x>776</x>
+      <y>240</y>
       <w>392</w>
-      <h>152</h>
+      <h>80</h>
     </coordinates>
     <panel_attributes>OpenCVTracker
 --
 -__trackers: dict
 _OPENCV_OBJECT_TRACKERS: dict_
 --
-+__init__(self, trackerType)
-+track(self, uniqueId: str, image, bbox: Tuple[int, int, int, int], imageHash: int)
-+parallelizable(self)
-+trackAll(self, uniqueIds: Sequence[str], image, imageHash: int)</panel_attributes>
++__init__(self, trackerType)</panel_attributes>
     <additional_attributes/>
   </element>
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>816</x>
-      <y>496</y>
+      <x>776</x>
+      <y>368</y>
       <w>392</w>
-      <h>128</h>
+      <h>112</h>
     </coordinates>
     <panel_attributes>CachingTracker
 --
 +hashToAnswer: dict
++trackerType: str
 +idsToHash: dict
 +tracker: Tracker
 --
-+__init__(self, trackerType)
++__init__(self, tracker: Tracker)
 -__imageHash(image)
-+track(self, uniqueId: str, image, bbox: Tuple[int, int, int, int], imageHash: int)
-+parallelizable(self)</panel_attributes>
+</panel_attributes>
     <additional_attributes/>
   </element>
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>736</x>
-      <y>864</y>
+      <x>696</x>
+      <y>728</y>
       <w>248</w>
-      <h>56</h>
+      <h>80</h>
     </coordinates>
     <panel_attributes>CachingTrackerManager
 --
 +trackersConfigurations: dict
 --
-+getConfigurationForTracker(trackerType: str)</panel_attributes>
++getConfigurationForTracker(trackerType: str)
++clearCacheForTrackerType(trackerType: str)
++clearAllCache()</panel_attributes>
     <additional_attributes/>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>768</x>
-      <y>232</y>
+      <x>728</x>
+      <y>112</y>
       <w>272</w>
-      <h>280</h>
+      <h>272</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;-</panel_attributes>
-    <additional_attributes>10.0;10.0;10.0;310.0;320.0;330.0</additional_attributes>
+    <additional_attributes>10.0;10.0;10.0;300.0;320.0;320.0</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>768</x>
-      <y>232</y>
+      <x>728</x>
+      <y>112</y>
       <w>160</w>
-      <h>112</h>
+      <h>144</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;-</panel_attributes>
-    <additional_attributes>10.0;10.0;10.0;80.0;180.0;120.0</additional_attributes>
+    <additional_attributes>10.0;10.0;10.0;70.0;180.0;160.0</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>536</x>
-      <y>232</y>
+      <x>496</x>
+      <y>112</y>
       <w>256</w>
-      <h>240</h>
+      <h>232</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;-</panel_attributes>
-    <additional_attributes>300.0;10.0;300.0;250.0;10.0;280.0</additional_attributes>
+    <additional_attributes>300.0;10.0;300.0;240.0;10.0;270.0</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>416</x>
-      <y>232</y>
+      <x>376</x>
+      <y>112</y>
       <w>376</w>
-      <h>128</h>
+      <h>120</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;-</panel_attributes>
-    <additional_attributes>450.0;10.0;450.0;80.0;10.0;140.0</additional_attributes>
+    <additional_attributes>450.0;10.0;450.0;70.0;10.0;130.0</additional_attributes>
   </element>
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>352</x>
-      <y>1120</y>
+      <x>312</x>
+      <y>1048</y>
       <w>536</w>
       <h>120</h>
     </coordinates>
@@ -175,8 +169,8 @@ _+initializeDirectory(saveFolder: str)_</panel_attributes>
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>688</x>
-      <y>752</y>
+      <x>648</x>
+      <y>640</y>
       <w>80</w>
       <h>64</h>
     </coordinates>
@@ -190,14 +184,13 @@ _+initializeDirectory(saveFolder: str)_</panel_attributes>
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>792</x>
-      <y>648</y>
+      <x>752</x>
+      <y>520</y>
       <w>416</w>
-      <h>136</h>
+      <h>120</h>
     </coordinates>
     <panel_attributes>ConverterToImagesYOLOv3
 --
-+uId: int
 +csvSet: set
 +textPattern: str
 +possibleLabels: dict
@@ -211,29 +204,35 @@ _+initializeDirectory(saveFolder: str)_</panel_attributes>
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>352</x>
-      <y>960</y>
+      <x>312</x>
+      <y>832</y>
       <w>624</w>
-      <h>128</h>
+      <h>200</h>
     </coordinates>
     <panel_attributes>Evaluator
 --
-+predictors: Sequence[Predictor]
-+groundTruthPredictors: Sequence[GroundTruthPredictor]
 +result: float
 +maxFrames: int
++predictedDict: dict
++gtDict: dict
++filePath: str
++counter: int
++elapsedTime: float
 +computed: bool
 --
-+__init__(self, predictors: Sequence[Predictor], groundTruthPredictors: Sequence[GroundTruthPredictor], maxFrames: int)
-+evaluate(self, verbose: bool)
++__init__(self, maxFrames: int)
+-__writeValuesToFile(self)
+-__readValuesFromFile(self)
++addEvaluation(self, predictor: Predictor, groundTruthPredictor: GroundTruthPredictor, verbose: bool)
++evaluate(self)
 </panel_attributes>
     <additional_attributes/>
   </element>
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>448</x>
-      <y>760</y>
+      <x>408</x>
+      <y>632</y>
       <w>168</w>
       <h>56</h>
     </coordinates>
@@ -247,8 +246,8 @@ Trainer
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>352</x>
-      <y>848</y>
+      <x>312</x>
+      <y>720</y>
       <w>344</w>
       <h>88</h>
     </coordinates>
@@ -265,8 +264,8 @@ Trainer
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>520</x>
-      <y>808</y>
+      <x>480</x>
+      <y>680</y>
       <w>24</w>
       <h>56</h>
     </coordinates>
@@ -276,40 +275,42 @@ Trainer
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>344</x>
-      <y>576</y>
+      <x>304</x>
+      <y>432</y>
       <w>360</w>
-      <h>96</h>
+      <h>112</h>
     </coordinates>
     <panel_attributes>HPGenerator
 --
 +ranges: Sequence[tuple]
 +initialTries: Sequence[tuple]
++noIterations: in
 --
 +__init__(self, initialTries: Sequence[tuple], ranges: Sequence[tuple])
-+getNextRange(self)</panel_attributes>
++getNextRange(self)
++getNumberOfIterations(self)</panel_attributes>
     <additional_attributes/>
   </element>
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>360</x>
-      <y>696</y>
-      <w>312</w>
+      <x>320</x>
+      <y>568</y>
+      <w>368</w>
       <h>56</h>
     </coordinates>
     <panel_attributes>LinearHPGenerator
 --
 --
-+__init__(self, ranges: Sequence[tuple], gridSize: int)
--__updateToRange(self, number: float, rng: Tuple[float, float]</panel_attributes>
++__init__(self, ranges: Sequence[tuple], stepSize: float, noIterations: int)
+-__updateToRange(self, number: float, rng: Tuple[float, float])</panel_attributes>
     <additional_attributes/>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>512</x>
-      <y>664</y>
+      <x>472</x>
+      <y>536</y>
       <w>24</w>
       <h>48</h>
     </coordinates>
@@ -319,10 +320,10 @@ Trainer
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>1000</x>
-      <y>800</y>
+      <x>960</x>
+      <y>672</y>
       <w>208</w>
-      <h>504</h>
+      <h>496</h>
     </coordinates>
     <panel_attributes>BasicConfig
 --
@@ -348,9 +349,7 @@ Trainer
 +maxNrOfObjectsPerFrame: int
 +maxAge: int
 +imageGenerationSavePeriod: int
-+imageGenerationSavePath: str
 +imageGenerationSaveFileName: str
-+batchSplit: Tuple[float, float, float, float]
 +trackerType: str
 -__dict__
 --
@@ -358,6 +357,7 @@ Trainer
 +saveText(self, configFile: str)
 +getDictionary(self)
 +updateDictionary(self)
++getPreTrainedModelPath(self)
 +getModelPath(self)
 +getAnchorsPath(self)
 +getPredictionsPath(self)

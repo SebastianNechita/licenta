@@ -7,8 +7,8 @@ from pedect.tracker.TimesHolder import TimesHolder
 
 
 class OpenCVTracker(Tracker):
-    def parallelizable(self) -> bool:
-        return True
+    # def parallelizable(self) -> bool:
+    #     return True
 
     OPENCV_OBJECT_TRACKERS = {
         "csrt": cv2.TrackerCSRT_create,
@@ -36,10 +36,6 @@ class OpenCVTracker(Tracker):
             box = self.__trackers[uniqueId].update(image)[1]
             return box[0], box[1], box[2] + box[0], box[3] + box[1]
 
-    # def clearTracker(self):
-    #     # print("\nClearing " + str(len(self.__trackers)) + " trackers...")
-    #     del self.__trackers
-    #     self.__trackers = {}
 
     def trackAll(self, uniqueIds: Sequence[str], image, imageHash: int = None) -> dict:
         uidsSet = set(uniqueIds)

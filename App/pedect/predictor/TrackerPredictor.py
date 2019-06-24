@@ -2,7 +2,6 @@ import time
 
 from pedect.config.BasicConfig import BasicConfig
 from pedect.predictor.Predictor import Predictor
-from pedect.predictor.PredictedBox import PredictedBox
 from pedect.predictor.VideoHolder import VideoHolder
 from pedect.tracker.Tracker import Tracker
 from pedect.utils.trackedObjectsOperations import *

@@ -72,7 +72,6 @@ class OptimizeController:
         self.trackerTypesOptimizeListViewModel = QStandardItemModel(self.trackerTypesOptimizeListView)
         self.trackerTypesOptimizeListView.setModel(self.trackerTypesOptimizeListViewModel)
         for trackerType in self.service.getAllAvailableTrackerTypes():
-            print(trackerType)
             item = QStandardItem(trackerType)
             item.setCheckable(True)
             self.trackerTypesOptimizeListViewModel.appendRow(item)

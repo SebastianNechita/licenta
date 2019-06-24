@@ -40,6 +40,7 @@ def refreshTrackedObjects(tracker, image, activeObjects: dict, imageHash = None)
     #         activeObjects[k].setPos(future.result())
     # else:
     newPositions = tracker.trackAll(activeObjects.keys(), imageRGB, imageHash)
+    # [activeObjects[k].setPos(v) for k, v in newPositions.items()]
     activeObjects = {k: v for k, v in activeObjects.items() if newPositions[k] != (0, 0, 0, 0)}
     [activeObjects[k].setPos(v) for k, v in newPositions.items() if newPositions[k] != (0, 0, 0, 0)]
 
@@ -95,5 +96,24 @@ def createAndDestroyTrackedObjects(tracker, image, activeObjects, predictedBBoxe
         activeObjects[k] = v
     return activeObjects
 
+'''
+Input: 
+    activeObjects : a dictionary with value a Tracked object
+    frameNr : integer - the current frame number
+    maxAge: integer - the maximum age for a tracked object
+Output:
+    newActiveObjects: a dictionary with the value a Tracked object
+Result:
+    The function returns a new dictionary that contains only those objects that were created strictly after the frame frameNr - maxAge
+Precondition: activeObjects, frameNr and maxAge are not None
+'''
 def removeOldObjects(activeObjects, frameNr, maxAge):
-    return {k: v for k, v in activeObjects.items() if frameNr - v.getFrameCreated() < maxAge}
+    assert isinstance(activeObjects, dict)
+    assert isinstance(frameNr, int)
+    assert isinstance(maxAge, int)
+    rez = {}
+    for k, v in activeObjects.items():
+        assert isinstance(v, TrackedObject)
+        if frameNr - v.getFrameCreated() < maxAge:
+            rez[k] = v
+    return rez

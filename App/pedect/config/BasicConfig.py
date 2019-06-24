@@ -68,7 +68,7 @@ class BasicConfig:
     imageGenerationSavePeriod = 10
     imageGenerationSaveFileName = "annotations.csv"
 
-    batchSplit = (0.2, 0.1, 0.05, 0.65)
+    # batchSplit = (0.2, 0.1, 0.05, 0.65)
 
     trackerType = "medianflow"
 

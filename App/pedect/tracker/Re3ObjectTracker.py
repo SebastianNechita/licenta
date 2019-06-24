@@ -8,8 +8,8 @@ from pedect.tracker.TimesHolder import TimesHolder
 
 class Re3ObjectTracker(Tracker):
 
-    def parallelizable(self) -> bool:
-        return False
+    # def parallelizable(self) -> bool:
+    #     return False
 
     def __init__(self):
         Tracker.__init__(self)
@@ -23,8 +23,6 @@ class Re3ObjectTracker(Tracker):
     def track(self, uniqueId: str, image, bbox: Tuple[int, int, int, int] = None, imageHash: int = None) -> \
             Tuple[int, int, int, int]:
         TimesHolder.trackerAccessed += 1
-        # print("Track", uniqueId, bbox)
         ans = tuple([int(round(x)) for x in self.__tracker.track(uniqueId, image, bbox)])
-        # print(ans)
         return ans
 

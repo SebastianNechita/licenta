@@ -92,7 +92,7 @@ class HPGenerator:
             elif isinstance(elem, list):
                 result.append(elem[random.randint(0, len(elem) - 1)])
             else:
-                print("No known hyperParameter type to choose from!")
+                raise Exception("No known hyperParameter type to choose from!")
         return tuple(result)
 
     def getNumberOfIterations(self):

@@ -26,7 +26,6 @@ def playVideo(predictors, videoHolder, noFrames = MAX_VIDEO_LENGTH):
     video = videoHolder.getVideo()
     for frameNr in range(min(videoHolder.getLength(), noFrames)):
         image = video[frameNr][:]  # predictor.getFrame(frameNr)
-        # print("Frame %d" % frameNr)
         for predictor, color in predictors:
             space = False
             if isinstance(predictor, MinScoreWrapperPredictor):

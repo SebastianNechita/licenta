@@ -109,7 +109,6 @@ class GenerationController:
     def __modelToUi(self):
         trainId = self.trainIdsController.getSelectedTrainId()
         config = getConfigFromTrainId(trainId)
-        # print(config)
         self.ctTB.setText(str(config.createThreshold))
         self.rtTH.setText(str(config.removeThreshold))
         self.stTB.setText(str(config.surviveThreshold))

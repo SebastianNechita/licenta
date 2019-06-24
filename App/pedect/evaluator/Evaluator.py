@@ -27,16 +27,16 @@ class Evaluator:
         self.predictedDict = {}
         self.gtDict = {}
         self.counter = 0
-        self.elapsedTime = 0
+        self.elapsedTime = 0.0
 
-    def writeValuesToFile(self):
+    def __writeValuesToFile(self):
         f = open(self.filePath, 'wb+')
         pickle.dump((self.predictedDict, self.gtDict), f)
         f.close()
         self.predictedDict = None
         self.gtDict = None
 
-    def readValuesFromFile(self):
+    def __readValuesFromFile(self):
         f = open(self.filePath, "rb")
         (self.predictedDict, self.gtDict) = pickle.load(f)
         f.close()
@@ -49,7 +49,7 @@ class Evaluator:
         if verbose:
             rangeToIterate = tqdm(rangeToIterate)
         if self.gtDict is None:
-            self.readValuesFromFile()
+            self.__readValuesFromFile()
 
         for frameNr in rangeToIterate:
             groundTruthObjects = groundTruthPredictor.predictForFrame(frameNr)
@@ -59,14 +59,14 @@ class Evaluator:
                                                 for o in predictedObjects]
             self.counter = self.counter + 1
         random.setstate(s)
-        self.writeValuesToFile()
+        self.__writeValuesToFile()
         self.elapsedTime += time.time() - start
 
 
     def evaluate(self):
         if self.elapsedTime == 0.0:
             raise Exception("No video evaluated!")
-        self.readValuesFromFile()
+        self.__readValuesFromFile()
         start = time.time()
         memory = get_size(self.predictedDict) + get_size(self.gtDict)
 
@@ -120,7 +120,6 @@ def findGTmAP(predictedDict, gtDict):
     for key, v in gtDict.items():
         if len(v) == 0:
             toRemoveKeys.add(key)
-    # print(len(toRemoveKeys))
     return findMaPModified(
         {k: v for k, v in predictedDict.items() if k not in toRemoveKeys},
         {k: v for k, v in gtDict.items() if k not in toRemoveKeys}

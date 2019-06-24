@@ -18,5 +18,5 @@ class FakeTracker(Tracker):
         else:
             return self.__trackers[uniqueId]
 
-    def parallelizable(self) -> bool:
-        return True
+    # def parallelizable(self) -> bool:
+    #     return True
